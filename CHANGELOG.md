@@ -5,6 +5,31 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-08-03
+
+### Fixed
+- **Diagonal selection accuracy**: Increased cell spacing from 4px to 8px
+  - Prevents accidental selection of adjacent cells when dragging diagonally
+  - Example: Selecting C→E diagonally no longer grabs F inadvertently
+  - Makes diagonal word selection more reliable and forgiving
+
+### Improved
+- **Preview bar UX**: Word text now persists while showing success/error feedback
+  - Text stays visible while bar is green (valid word) or red (invalid word)
+  - Only clears when bar resets to orange (selecting state)
+  - Previously cleared immediately on finger lift, making it difficult to see what was submitted
+  - Users can now read the word they just attempted
+  
+- **Results screen sorting**: "Show All Words" now sorted by maximum possible score
+  - Displays highest-value words first, regardless of whether found
+  - "Found Words Only" still sorted by user's actual score
+  - Previously both views sorted by user score, putting unfound words (0 points) at bottom
+
+### Changed
+- Grid cell spacing: `crossAxisSpacing` and `mainAxisSpacing` increased to 8 (was 4)
+- Preview bar: `_currentWord` only cleared when transitioning to selecting state
+- Results sorting: Uses `maxScore` for "Show All", `userScore` for "Found Only"
+
 ## [1.3.1] - 2026-08-03
 
 ### Fixed
