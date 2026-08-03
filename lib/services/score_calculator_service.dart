@@ -61,6 +61,31 @@ class ScoreCalculatorService {
     return maxScore;
   }
 
+  /// Get the path that produces the maximum score for a word
+  List<TilePosition> getBestPathForWord(
+    String word,
+    List<List<LetterTile>> grid,
+    String language,
+  ) {
+    final paths = _findAllPathsForWord(word, grid, language);
+    
+    if (paths.isEmpty) return [];
+
+    int maxScore = 0;
+    List<TilePosition> bestPath = [];
+    
+    for (final path in paths) {
+      final tiles = path.map((pos) => grid[pos.row][pos.col]).toList();
+      final score = calculateWordScore(tiles, language);
+      if (score > maxScore) {
+        maxScore = score;
+        bestPath = path;
+      }
+    }
+
+    return bestPath;
+  }
+
   List<List<TilePosition>> _findAllPathsForWord(
     String word,
     List<List<LetterTile>> grid,

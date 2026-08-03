@@ -67,12 +67,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
         } else {
           final maxScore = _scoreCalculator.calculateMaxPossibleScore(
               word, widget.gameState.grid, widget.gameState.language);
+          final bestPath = _scoreCalculator.getBestPathForWord(
+              word, widget.gameState.grid, widget.gameState.language);
           return WordDisplay(
             word: word,
             userScore: 0,
             maxScore: maxScore,
             isFound: false,
-            path: const [],
+            path: bestPath,
           );
         }
       }).toList();
@@ -382,6 +384,15 @@ class _ResultsScreenState extends State<ResultsScreen> {
   Widget _buildMiniGrid() {
     final selectedWord = _displayWords[_selectedWordIndex!];
     final gridSize = widget.gameState.grid.length;
+    
+    // If the word wasn't found (empty path), calculate the best path
+    final displayPath = selectedWord.path.isEmpty
+        ? _scoreCalculator.getBestPathForWord(
+            selectedWord.word,
+            widget.gameState.grid,
+            widget.gameState.language,
+          )
+        : selectedWord.path;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -398,7 +409,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
           final row = index ~/ gridSize;
           final col = index % gridSize;
           final tile = widget.gameState.grid[row][col];
-          final isInPath = selectedWord.path
+          final isInPath = displayPath
               .any((pos) => pos.row == row && pos.col == col);
 
           return Container(

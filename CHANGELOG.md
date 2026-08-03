@@ -5,6 +5,21 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.9] - 2026-08-03
+
+### Fixed
+- **Results screen grid highlighting** - now shows illuminated tiles for ALL words, not just found ones
+  - When tapping on a word you didn't find, the grid now highlights the best path for that word
+  - Consistent behavior between found and unfound words
+  - Uses ScoreCalculatorService.getBestPathForWord() to calculate optimal path
+
+### Changed
+- **App icon** - replaced default Flutter icon with custom tile icon showing "W"
+  - White tile with blue border
+  - Letter "W" in black
+  - Small "1" value indicator (gray #777777, avoiding demonic numbers)
+  - Generated for all Android density sizes (mdpi through xxxhdpi)
+
 ## [1.3.8] - 2026-08-03
 
 ### Added
