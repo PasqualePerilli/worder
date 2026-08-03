@@ -37,9 +37,12 @@ class TileWidget extends StatelessWidget {
           child: LayoutBuilder(
             builder: (context, constraints) {
               // Calculate font sizes based on actual tile dimensions
-              final tileSize = constraints.maxHeight > 0 
-                  ? constraints.maxHeight 
-                  : constraints.maxWidth;
+              // Use the smaller dimension to ensure text fits on all screen aspect ratios
+              final tileSize = constraints.maxHeight > 0 && constraints.maxWidth > 0
+                  ? (constraints.maxHeight < constraints.maxWidth 
+                      ? constraints.maxHeight 
+                      : constraints.maxWidth)
+                  : (constraints.maxHeight > 0 ? constraints.maxHeight : constraints.maxWidth);
               
               final letterFontSize = tileSize * config.letterSizeRatio;
               final valueFontSize = tileSize * config.valueSizeRatio;
