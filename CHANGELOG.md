@@ -5,6 +5,19 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2026-08-03
+
+### Fixed
+- **CRITICAL**: Drag selection now actually works
+  - Added `HitTestBehavior.opaque` to GestureDetector
+  - Ensures touch events are properly captured and not consumed by child widgets
+  - GridView no longer blocks gesture detection
+- Results screen + button styling improved
+  - Changed to fixed 44×44px size (standard touch target)
+  - Increased font size to 24px for better visibility
+  - Added more right padding (16px instead of 8px)
+  - Button now has proper square proportions instead of tall/narrow
+
 ## [1.1.1] - 2026-08-03
 
 ### Fixed
