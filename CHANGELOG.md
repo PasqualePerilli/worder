@@ -5,6 +5,23 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-08-03
+
+### Fixed
+- **CRITICAL**: Gray screen issue after pressing Play button
+  - Problem: Grid generation became async in v1.2.0 but UI tried to render before grid was ready
+  - Solution: Added loading state with CircularProgressIndicator
+  - Made `_grid` nullable and added `_isLoading` flag
+  - UI now waits for grid generation to complete before rendering
+  - Prevents crash from accessing uninitialized grid
+
+### Technical
+- Changed `_grid` from `late List<List<LetterTile>>` to `List<List<LetterTile>>?`
+- Added `bool _isLoading = true` state variable
+- Show loading spinner while `_isLoading || _grid == null`
+- Set `_isLoading = false` after grid generation completes (both new and resumed games)
+- Use null assertion operator (`!`) when accessing grid after null check
+
 ## [1.2.0] - 2026-08-03
 
 ### Fixed
