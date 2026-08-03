@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/game_settings.dart';
 import '../models/game_state.dart';
 import '../models/letter_tile.dart';
-import '../models/found_word.dart';
+import '../models/found_word.dart' show FoundWord, TilePosition;
 import '../services/config_service.dart';
 import '../services/dictionary_service.dart';
 import '../services/grid_generator_service.dart';
@@ -70,26 +70,46 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final savedGame = await _persistenceService.loadCurrentGame();
 
     if (savedGame != null &&
-        !savedGame.isFinished &&
         savedGame.language == widget.settings.language &&
         savedGame.grid.length == widget.settings.gridSize) {
-      // Resume saved game
-      setState(() {
-        _grid = savedGame.grid;
-        _foundWords = savedGame.foundWords;
-        _currentScore = savedGame.currentScore;
-        _startTime = savedGame.startTime;
-        _elapsedSeconds = savedGame.elapsedSeconds;
-        _gameDurationMinutes = savedGame.gameDurationMinutes;
-        _isPaused = savedGame.isPaused;
-        _showAddedTime = false;
-        _isLoading = false;
+      
+      if (savedGame.isFinished) {
+        // Replay finished game with same grid but reset state
+        setState(() {
+          _grid = savedGame.grid;
+          _foundWords = [];
+          _currentScore = 0;
+          _startTime = DateTime.now();
+          _elapsedSeconds = 0;
+          _gameDurationMinutes = widget.settings.gameDurationMinutes;
+          _isPaused = false;
+          _showAddedTime = false;
+          _isLoading = false;
+        });
+      } else {
+        // Resume unfinished game
+        setState(() {
+          _grid = savedGame.grid;
+          _foundWords = savedGame.foundWords;
+          _currentScore = savedGame.currentScore;
+          _startTime = savedGame.startTime;
+          _elapsedSeconds = savedGame.elapsedSeconds;
+          _gameDurationMinutes = savedGame.gameDurationMinutes;
+          _isPaused = savedGame.isPaused;
+          _showAddedTime = false;
+          _isLoading = false;
 
-        _foundWordStrings
-            .addAll(savedGame.foundWords.map((w) => w.word.toUpperCase()));
-      });
+          _foundWordStrings
+              .addAll(savedGame.foundWords.map((w) => w.word.toUpperCase()));
+        });
+      }
     } else {
-      // Start new game
+      // Start new game (no saved game or settings changed)
+      // Clear old saved game if settings changed
+      if (savedGame != null) {
+        await _persistenceService.clearCurrentGame();
+      }
+      
       final grid = await _gridGenerator.generateGrid(
           widget.settings.gridSize, widget.settings.language);
       
@@ -177,7 +197,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     );
 
     _persistenceService.saveCompletedGame(gameState);
-    _persistenceService.clearCurrentGame();
+    // Keep the current game saved so it can be replayed with the same grid
+    _persistenceService.saveCurrentGame(gameState);
 
     Navigator.pushReplacement(
       context,
@@ -257,16 +278,29 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
     final config = await ConfigService.getInstance();
     final word = _currentWord.toUpperCase();
+    
+    // Copy path before clearing
+    final savedPath = List<TilePosition>.from(_currentPath);
+    
+    // Clear selection immediately for visual feedback
+    setState(() {
+      _currentPath.clear();
+      _currentWord = '';
+    });
 
     // Check minimum length
     if (word.length < config.minWordLength) {
-      _resetSelection();
+      setState(() {
+        _previewState = PreviewBarState.selecting;
+      });
       return;
     }
 
     // Check if already found
     if (_foundWordStrings.contains(word)) {
-      _resetSelection();
+      setState(() {
+        _previewState = PreviewBarState.selecting;
+      });
       return;
     }
 
@@ -276,7 +310,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
     if (isValid) {
       // Calculate score
-      final tiles = _currentPath.map((pos) => _grid![pos.row][pos.col]).toList();
+      final tiles = savedPath.map((pos) => _grid![pos.row][pos.col]).toList();
       final score =
           _scoreCalculator.calculateWordScore(tiles, widget.settings.language);
       final maxScore = _scoreCalculator.calculateMaxPossibleScore(
@@ -286,7 +320,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         word: word,
         score: score,
         maxPossibleScore: maxScore,
-        path: List.from(_currentPath),
+        path: savedPath,
         timestamp: DateTime.now(),
       );
 
@@ -297,11 +331,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _currentScore += score;
       });
 
-      // Wait a bit before clearing
+      // Wait a bit before clearing preview
       await Future.delayed(Duration(milliseconds: config.previewBarSuccessDuration));
       
       if (mounted) {
-        _resetSelection();
+        setState(() {
+          _previewState = PreviewBarState.selecting;
+        });
       }
     } else {
       setState(() {
@@ -312,7 +348,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       await Future.delayed(Duration(milliseconds: config.invalidWordShakeDuration));
       
       if (mounted) {
-        _resetSelection();
+        setState(() {
+          _previewState = PreviewBarState.selecting;
+        });
       }
     }
   }
@@ -607,22 +645,4 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     hexColor = hexColor.replaceAll('#', '');
     return Color(int.parse('FF$hexColor', radix: 16));
   }
-}
-
-class TilePosition {
-  final int row;
-  final int col;
-
-  const TilePosition(this.row, this.col);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TilePosition &&
-          runtimeType == other.runtimeType &&
-          row == other.row &&
-          col == other.col;
-
-  @override
-  int get hashCode => row.hashCode ^ col.hashCode;
 }
