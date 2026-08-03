@@ -5,6 +5,35 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-08-03
+
+### Fixed
+- **CRITICAL**: Word submission on finger lift
+  - Selection now clears immediately when finger lifts
+  - Previously, valid words would remain selected/frozen after finger lift
+  - Invalid words worked correctly, but valid words didn't
+  - Fixed by copying path before clearing selection, then processing asynchronously
+  - Added `onPanCancel` handler to catch cancelled gestures
+  
+- **Grid replay issue**: When finishing a game and pressing + to replay, a new grid would appear instead of the same grid
+  - Now correctly reuses the same grid when replaying a finished game
+  - Flow: Play Grid A → Finish → Press + → Get Grid A again (with reset state)
+  - If settings change (language/size), generates new grid as expected
+
+### Changed
+- `_onSelectionEnd()` signature changed from `void async` to `Future<void> async` (proper async method)
+- Word validation and scoring now happens asynchronously after selection is cleared
+- Finished games are saved as current game (not cleared) to enable grid reuse
+- `_initializeGame()` now handles three cases:
+  1. Finished game with matching settings → reuse grid, reset state
+  2. Unfinished game → resume
+  3. No game or settings mismatch → generate new grid
+
+### Technical
+- Removed duplicate `TilePosition` class from game_screen.dart (was causing type conflicts)
+- `TilePosition` now only defined in found_word.dart
+- Added debug logging for gesture events
+
 ## [1.3.0] - 2026-08-03
 
 ### Changed
