@@ -2,6 +2,9 @@
 
 An offline word game inspired by Ruzzle, built with Flutter.
 
+**Version:** 1.0.0  
+**Release Date:** 2026-08-03
+
 ## Features
 
 - 100% offline gameplay
@@ -21,7 +24,12 @@ An offline word game inspired by Ruzzle, built with Flutter.
 ## Platforms Supported
 
 - iOS
-- Android
+- Android (API 29+ / Android 10+)
 - Linux
 - Windows
 - macOS
+
+## Documentation
+
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+- **[GETTING_STARTED.md](GETTING_STARTED.md)** - Detailed setup and development guide
