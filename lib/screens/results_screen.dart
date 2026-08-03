@@ -10,7 +10,6 @@ import '../services/dictionary_service.dart';
 import '../services/score_calculator_service.dart';
 import '../services/config_service.dart';
 import 'home_screen.dart';
-import 'game_screen.dart';
 
 class ResultsScreen extends StatefulWidget {
   final GameState gameState;
