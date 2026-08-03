@@ -36,6 +36,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   final List<TilePosition> _currentPath = [];
   String _currentWord = '';
   PreviewBarState _previewState = PreviewBarState.selecting;
+  int? _lastWordScore; // Score of the last submitted word for preview bar
   Timer? _gameTimer;
   final Set<String> _foundWordStrings = {};
 
@@ -292,6 +293,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       setState(() {
         _previewState = PreviewBarState.selecting;
         _currentWord = ''; // Clear word when resetting to selecting
+        _lastWordScore = null;
       });
       return;
     }
@@ -301,6 +303,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       setState(() {
         _previewState = PreviewBarState.selecting;
         _currentWord = ''; // Clear word when resetting to selecting
+        _lastWordScore = null;
       });
       return;
     }
@@ -327,6 +330,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
       setState(() {
         _previewState = PreviewBarState.success;
+        _lastWordScore = score;
         _foundWords.add(foundWord);
         _foundWordStrings.add(word);
         _currentScore += score;
@@ -339,6 +343,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         setState(() {
           _previewState = PreviewBarState.selecting;
           _currentWord = ''; // Clear word when resetting to selecting
+          _lastWordScore = null;
         });
       }
     } else {
@@ -353,6 +358,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         setState(() {
           _previewState = PreviewBarState.selecting;
           _currentWord = ''; // Clear word when resetting to selecting
+          _lastWordScore = null;
         });
       }
     }
@@ -396,7 +402,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 Column(
                   children: [
                     _buildTopBar(config),
-                    PreviewBar(word: _currentWord, state: _previewState),
+                    PreviewBar(
+                      word: _currentWord,
+                      state: _previewState,
+                      score: _lastWordScore,
+                    ),
                     Expanded(
                       child: Center(
                         child: _buildGrid(),
@@ -554,8 +564,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             padding: const EdgeInsets.all(gridPadding),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: _grid!.length,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+              crossAxisSpacing: 24,
+              mainAxisSpacing: 24,
             ),
             itemCount: _grid!.length * _grid!.length,
             itemBuilder: (context, index) {
@@ -568,6 +578,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               return TileWidget(
                 tile: tile,
                 isSelected: isSelected,
+                gridSize: _grid!.length,
               );
             },
           ),

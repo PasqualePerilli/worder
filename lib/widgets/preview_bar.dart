@@ -10,11 +10,13 @@ enum PreviewBarState {
 class PreviewBar extends StatefulWidget {
   final String word;
   final PreviewBarState state;
+  final int? score;
 
   const PreviewBar({
     super.key,
     required this.word,
     required this.state,
+    this.score,
   });
 
   @override
@@ -91,7 +93,7 @@ class _PreviewBarState extends State<PreviewBar>
                 ),
                 child: Center(
                   child: Text(
-                    widget.word.isEmpty ? ' ' : widget.word,
+                    _getDisplayText(),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -106,6 +108,17 @@ class _PreviewBarState extends State<PreviewBar>
         );
       },
     );
+  }
+
+  String _getDisplayText() {
+    if (widget.word.isEmpty) return ' ';
+    
+    // Show "+N" for valid words with score
+    if (widget.state == PreviewBarState.success && widget.score != null) {
+      return '${widget.word} +${widget.score}';
+    }
+    
+    return widget.word;
   }
 
   Color _getBackgroundColor(ConfigService config) {

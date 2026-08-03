@@ -102,7 +102,7 @@ class GridPreGenerator {
       attempts++;
       final grid = _generateSingleGrid(size, language, frequencies);
       
-      if (_isValidGrid(grid, frequencies)) {
+      if (_isValidGrid(grid, frequencies, language)) {
         validGrids.add(grid);
         if (validGrids.length % 100 == 0) {
           print('  Generated ${validGrids.length}/$count...');
@@ -157,7 +157,7 @@ class GridPreGenerator {
     return letters.last;
   }
   
-  bool _isValidGrid(List<List<GridTile>> grid, Map<String, double> frequencies) {
+  bool _isValidGrid(List<List<GridTile>> grid, Map<String, double> frequencies, String language) {
     final letterCounts = <String, int>{};
     final gridSize = grid.length;
     
@@ -215,6 +215,52 @@ class GridPreGenerator {
               grid[row][col].letter == grid[row + 2][col - 2].letter) {
             return false;
           }
+        }
+      }
+    }
+    
+    // Check corner letters: if corner is consonant, at least one adjacent should be vowel
+    final vowels = language == 'italian' 
+        ? {'A', 'E', 'I', 'O', 'U'} 
+        : {'A', 'E', 'I', 'O', 'U', 'Y'};
+    
+    final corners = [
+      [0, 0],                     // Top-left
+      [0, gridSize - 1],          // Top-right
+      [gridSize - 1, 0],          // Bottom-left
+      [gridSize - 1, gridSize - 1], // Bottom-right
+    ];
+    
+    for (final corner in corners) {
+      final row = corner[0];
+      final col = corner[1];
+      final cornerLetter = grid[row][col].letter;
+      
+      // If corner is consonant, check adjacent tiles
+      if (!vowels.contains(cornerLetter)) {
+        final adjacentPositions = <List<int>>[];
+        
+        // Add all adjacent positions for this corner
+        if (row > 0) adjacentPositions.add([row - 1, col]);           // Up
+        if (row < gridSize - 1) adjacentPositions.add([row + 1, col]); // Down
+        if (col > 0) adjacentPositions.add([row, col - 1]);           // Left
+        if (col < gridSize - 1) adjacentPositions.add([row, col + 1]); // Right
+        if (row > 0 && col > 0) adjacentPositions.add([row - 1, col - 1]);         // Up-left
+        if (row > 0 && col < gridSize - 1) adjacentPositions.add([row - 1, col + 1]); // Up-right
+        if (row < gridSize - 1 && col > 0) adjacentPositions.add([row + 1, col - 1]); // Down-left
+        if (row < gridSize - 1 && col < gridSize - 1) adjacentPositions.add([row + 1, col + 1]); // Down-right
+        
+        // Check if at least one adjacent is a vowel
+        bool hasAdjacentVowel = false;
+        for (final pos in adjacentPositions) {
+          if (vowels.contains(grid[pos[0]][pos[1]].letter)) {
+            hasAdjacentVowel = true;
+            break;
+          }
+        }
+        
+        if (!hasAdjacentVowel) {
+          return false; // Corner consonant has no adjacent vowel
         }
       }
     }

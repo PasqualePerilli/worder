@@ -34,9 +34,9 @@ letter_distribution:
 # Bonus tile colors (hex format)
 colors:
   triple_word: "#FF0000"      # Red
-  double_word: "#FFFF00"      # Yellow
+  double_word: "#D4AF37"      # Gold (darker yellow for better white text readability)
   triple_letter: "#0000FF"    # Blue
-  double_letter: "#00FF00"    # Green
+  double_letter: "#32CD32"    # Lime green (less bright than pure green)
   selected_tile: "#FFA500"    # Orange
   background_game: "#ADD8E6"  # Light blue
   background_home: "#ADD8E6"  # Light blue

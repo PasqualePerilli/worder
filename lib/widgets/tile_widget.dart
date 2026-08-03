@@ -6,12 +6,14 @@ class TileWidget extends StatelessWidget {
   final LetterTile tile;
   final bool isSelected;
   final bool isHighlighted;
+  final int gridSize;
 
   const TileWidget({
     super.key,
     required this.tile,
     this.isSelected = false,
     this.isHighlighted = false,
+    required this.gridSize,
   });
 
   @override
@@ -51,8 +53,8 @@ class TileWidget extends StatelessWidget {
                     Center(
                       child: Text(
                         tile.letter,
-                        style: const TextStyle(
-                          fontSize: 24,
+                        style: TextStyle(
+                          fontSize: _getLetterFontSize(),
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -64,8 +66,8 @@ class TileWidget extends StatelessWidget {
                       right: 2,
                       child: Text(
                         '${tile.value}',
-                        style: const TextStyle(
-                          fontSize: 10,
+                        style: TextStyle(
+                          fontSize: _getValueFontSize(),
                           fontWeight: FontWeight.bold,
                           color: Colors.black54,
                         ),
@@ -170,7 +172,41 @@ class TileWidget extends StatelessWidget {
       );
     }
   }
+  double _getLetterFontSize() {
+    // Scale down letter size for larger grids
+    switch (gridSize) {
+      case 4:
+        return 28.0;
+      case 5:
+        return 24.0;
+      case 6:
+        return 20.0;
+      case 7:
+        return 16.0;
+      case 8:
+        return 14.0;
+      default:
+        return 24.0;
+    }
+  }
 
+  double _getValueFontSize() {
+    // Scale down value size for larger grids
+    switch (gridSize) {
+      case 4:
+        return 11.0;
+      case 5:
+        return 10.0;
+      case 6:
+        return 9.0;
+      case 7:
+        return 8.0;
+      case 8:
+        return 7.0;
+      default:
+        return 10.0;
+    }
+  }
   Color _parseColor(String hexColor) {
     hexColor = hexColor.replaceAll('#', '');
     return Color(int.parse('FF$hexColor', radix: 16));
