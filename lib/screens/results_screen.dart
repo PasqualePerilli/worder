@@ -9,6 +9,7 @@ import '../services/dictionary_service.dart';
 import '../services/score_calculator_service.dart';
 import '../services/config_service.dart';
 import '../services/share_service.dart';
+import '../services/persistence_service.dart';
 import 'home_screen.dart';
 import 'game_screen.dart' show GameScreen;
 
@@ -110,18 +111,29 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  void _addOneMinute() {
-    // Return to game with +1 minute
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => GameScreen(
-          settings: widget.gameState.toGameSettings().copyWith(
-                gameDurationMinutes: 1,
-              ),
-        ),
-      ),
+  void _addOneMinute() async {
+    // Resume the game with +1 minute added to the duration
+    final extendedGame = widget.gameState.copyWith(
+      isFinished: false,
+      isPaused: false,
+      gameDurationMinutes: widget.gameState.gameDurationMinutes + 1,
     );
+    
+    // Save the extended game as current game
+    final persistenceService = PersistenceService();
+    await persistenceService.saveCurrentGame(extendedGame);
+    
+    // Navigate to game screen - it will resume the extended game
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => GameScreen(
+            settings: widget.gameState.toGameSettings(),
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _saveResults() async {
