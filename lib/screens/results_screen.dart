@@ -87,8 +87,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
       }).toList();
     }
 
-    // Sort by user score (descending)
-    _displayWords.sort((a, b) => b.userScore.compareTo(a.userScore));
+    // Sort by max score (descending) when showing all, by user score when showing found only
+    if (_showAllWords) {
+      _displayWords.sort((a, b) => b.maxScore.compareTo(a.maxScore));
+    } else {
+      _displayWords.sort((a, b) => b.userScore.compareTo(a.userScore));
+    }
   }
 
   bool _isWordPossible(String word) {

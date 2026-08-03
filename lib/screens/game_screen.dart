@@ -282,16 +282,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     // Copy path before clearing
     final savedPath = List<TilePosition>.from(_currentPath);
     
-    // Clear selection immediately for visual feedback
+    // Clear path immediately for visual feedback, but keep word for preview bar
     setState(() {
       _currentPath.clear();
-      _currentWord = '';
     });
 
     // Check minimum length
     if (word.length < config.minWordLength) {
       setState(() {
         _previewState = PreviewBarState.selecting;
+        _currentWord = ''; // Clear word when resetting to selecting
       });
       return;
     }
@@ -300,6 +300,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (_foundWordStrings.contains(word)) {
       setState(() {
         _previewState = PreviewBarState.selecting;
+        _currentWord = ''; // Clear word when resetting to selecting
       });
       return;
     }
@@ -337,6 +338,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       if (mounted) {
         setState(() {
           _previewState = PreviewBarState.selecting;
+          _currentWord = ''; // Clear word when resetting to selecting
         });
       }
     } else {
@@ -350,6 +352,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       if (mounted) {
         setState(() {
           _previewState = PreviewBarState.selecting;
+          _currentWord = ''; // Clear word when resetting to selecting
         });
       }
     }
@@ -551,8 +554,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             padding: const EdgeInsets.all(gridPadding),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: _grid!.length,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 4,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
             ),
             itemCount: _grid!.length * _grid!.length,
             itemBuilder: (context, index) {
