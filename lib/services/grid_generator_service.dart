@@ -1,132 +1,102 @@
 import 'dart:math';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/letter_tile.dart';
 import 'dictionary_service.dart';
-import 'config_service.dart';
 
 class GridGeneratorService {
   final Random _random = Random();
   final DictionaryService _dictionaryService = DictionaryService.getInstance();
+  
+  // Cache loaded grids to avoid reloading
+  final Map<String, List<List<List<LetterTile>>>> _gridCache = {};
 
   Future<List<List<LetterTile>>> generateGrid(int size, String language) async {
-    final config = await ConfigService.getInstance();
-    
     print('GridGenerator: Starting grid generation (size: $size, language: $language)');
     
-    // Try to generate a valid grid with retries
-    for (int attempt = 0; attempt < config.maxGenerationRetries; attempt++) {
-      final grid = _generateLetters(size, language, config);
+    // Try runtime generation first (up to 10 attempts)
+    for (int attempt = 0; attempt < 10; attempt++) {
+      final grid = _generateSingleGrid(size, language);
       
-      // Validate the grid
-      if (_validateGrid(grid, config, language)) {
+      if (_isValidGrid(grid, size, language)) {
         print('GridGenerator: Successfully generated valid grid on attempt ${attempt + 1}');
-        // Add bonus tiles
         _addBonusTiles(grid, size);
         return grid;
       }
     }
     
-    // Fallback: generate without strict rules if max retries exceeded
-    print('GridGenerator: Max retries exceeded, using relaxed rules');
-    final grid = _generateLettersRelaxed(size, language);
+    // Fallback to pre-generated grids
+    print('GridGenerator: Runtime generation failed, loading pre-generated grid');
+    try {
+      final grids = await _loadPregeneratedGrids(size, language);
+      
+      if (grids.isNotEmpty) {
+        final selectedGrid = grids[_random.nextInt(grids.length)];
+        print('GridGenerator: Selected pre-generated grid from ${grids.length} available');
+        _addBonusTiles(selectedGrid, size);
+        return selectedGrid;
+      }
+    } catch (e) {
+      print('GridGenerator: Error loading pre-generated grids: $e');
+    }
+    
+    // Last resort: simple grid with no validation
+    print('GridGenerator: All methods failed, generating simple unconstrained grid');
+    final grid = _generateSingleGrid(size, language);
     _addBonusTiles(grid, size);
     return grid;
   }
-
-  List<List<LetterTile>> _generateLetters(
-      int size, String language, ConfigService config) {
-    final List<List<LetterTile>> grid = [];
-    final frequencies = _dictionaryService.getLetterFrequencies(language);
-    final letters = frequencies.keys.toList();
-    final Map<String, int> letterCounts = {};
-
-    // Classify letters as common or uncommon
-    final commonLetters = <String>[];
-    final uncommonLetters = <String>[];
-    for (final letter in letters) {
-      if (frequencies[letter]! >= config.uncommonThreshold) {
-        commonLetters.add(letter);
-      } else {
-        uncommonLetters.add(letter);
-      }
+  
+  Future<List<List<List<LetterTile>>>> _loadPregeneratedGrids(int size, String language) async {
+    final cacheKey = '${language}_${size}x$size';
+    
+    // Return from cache if already loaded
+    if (_gridCache.containsKey(cacheKey)) {
+      return _gridCache[cacheKey]!;
     }
-
-    // Create cumulative frequency distribution
-    final cumulativeFreq = <double>[];
-    double sum = 0;
-    for (final letter in letters) {
-      sum += frequencies[letter]!;
-      cumulativeFreq.add(sum);
-    }
-
-    // Generate grid with distribution constraints
-    for (int row = 0; row < size; row++) {
-      final List<LetterTile> rowList = [];
-      for (int col = 0; col < size; col++) {
-        String? selectedLetter;
-        int attempts = 0;
-        
-        // Try to select a valid letter (increased attempts for small grids)
-        final maxAttempts = size <= 4 ? 200 : 100;
-        while (selectedLetter == null && attempts < maxAttempts) {
-          attempts++;
-          final candidate = _selectLetterByFrequency(
-              letters, cumulativeFreq, sum, language);
-          
-          // Check occurrence limits
-          final currentCount = letterCounts[candidate] ?? 0;
-          final isUncommon = uncommonLetters.contains(candidate);
-          final maxOccurrences = isUncommon
-              ? config.maxUncommonLetterOccurrences
-              : config.maxCommonLetterOccurrences;
-          
-          if (currentCount >= maxOccurrences) {
-            continue; // Try another letter
-          }
-          
-          // Check for consecutive identical letters
-          if (_wouldCreateConsecutive(grid, row, col, candidate, config.minDistanceSameLetter)) {
-            continue; // Try another letter
-          }
-          
-          selectedLetter = candidate;
+    
+    // Load from assets
+    final path = 'assets/pregenerated_grids/${language}_${size}x$size.json';
+    final jsonString = await rootBundle.loadString(path);
+    final jsonData = json.decode(jsonString) as Map<String, dynamic>;
+    final gridsJson = jsonData['grids'] as List;
+    
+    // Parse grids
+    final grids = <List<List<LetterTile>>>[];
+    for (final gridJson in gridsJson) {
+      final grid = (gridJson as List).map((rowJson) {
+        return (rowJson as List).map((tileJson) {
+          final tile = tileJson as Map<String, dynamic>;
+          return LetterTile(
+            letter: tile['letter'] as String,
+            value: tile['value'] as int,
+            bonusType: BonusType.none,
+            row: 0, // Will be set by index
+            col: 0, // Will be set by index
+          );
+        }).toList();
+      }).toList();
+      
+      // Set row/col indices
+      for (int row = 0; row < grid.length; row++) {
+        for (int col = 0; col < grid[row].length; col++) {
+          grid[row][col] = grid[row][col].copyWith(row: row, col: col);
         }
-        
-        // Fallback: if we couldn't find a valid letter with all constraints,
-        // at least avoid consecutive letters
-        if (selectedLetter == null) {
-          for (final letter in commonLetters) {
-            if (!_wouldCreateConsecutive(grid, row, col, letter, config.minDistanceSameLetter)) {
-              selectedLetter = letter;
-              break;
-            }
-          }
-          // If still null, just use any common letter
-          selectedLetter ??= commonLetters[_random.nextInt(commonLetters.length)];
-        }
-        
-        // Update count
-        letterCounts[selectedLetter] = (letterCounts[selectedLetter] ?? 0) + 1;
-        
-        final value = _dictionaryService.getLetterValue(selectedLetter, language);
-        rowList.add(LetterTile(
-          letter: selectedLetter,
-          value: value,
-          bonusType: BonusType.none,
-          row: row,
-          col: col,
-        ));
       }
-      grid.add(rowList);
+      
+      grids.add(grid);
     }
-
-    return grid;
+    
+    // Cache and return
+    _gridCache[cacheKey] = grids;
+    return grids;
   }
-
-  List<List<LetterTile>> _generateLettersRelaxed(int size, String language) {
-    final List<List<LetterTile>> grid = [];
+  
+  // Generate a single grid using simple weighted random selection
+  List<List<LetterTile>> _generateSingleGrid(int size, String language) {
     final frequencies = _dictionaryService.getLetterFrequencies(language);
     final letters = frequencies.keys.toList();
-
+    
     // Create cumulative frequency distribution
     final cumulativeFreq = <double>[];
     double sum = 0;
@@ -134,15 +104,15 @@ class GridGeneratorService {
       sum += frequencies[letter]!;
       cumulativeFreq.add(sum);
     }
-
-    // Generate grid with weighted random selection (original logic)
+    
+    // Generate grid with weighted random selection (no constraints during generation)
+    final grid = <List<LetterTile>>[];
     for (int row = 0; row < size; row++) {
-      final List<LetterTile> rowList = [];
+      final rowList = <LetterTile>[];
       for (int col = 0; col < size; col++) {
-        final letter = _selectLetterByFrequency(
-            letters, cumulativeFreq, sum, language);
+        final letter = _selectLetterByFrequency(letters, cumulativeFreq, sum);
         final value = _dictionaryService.getLetterValue(letter, language);
-
+        
         rowList.add(LetterTile(
           letter: letter,
           value: value,
@@ -153,96 +123,64 @@ class GridGeneratorService {
       }
       grid.add(rowList);
     }
-
+    
     return grid;
   }
-
-  bool _wouldCreateConsecutive(List<List<LetterTile>> grid, int row, int col,
-      String letter, int minDistance) {
-    // Check horizontal (left neighbor)
-    if (col > 0 && grid[row][col - 1].letter == letter) {
-      // Check if this would create 3+ consecutive
-      if (col > 1 && grid[row][col - 2].letter == letter) {
-        return true; // Would create 3 consecutive horizontally
-      }
-    }
-
-    // Check vertical (top neighbor)
-    if (row > 0 && grid[row - 1][col].letter == letter) {
-      // Check if this would create 3+ consecutive
-      if (row > 1 && grid[row - 2][col].letter == letter) {
-        return true; // Would create 3 consecutive vertically
-      }
-    }
-
-    // Check diagonal top-left
-    if (row > 0 && col > 0 && grid[row - 1][col - 1].letter == letter) {
-      if (row > 1 && col > 1 && grid[row - 2][col - 2].letter == letter) {
-        return true; // Would create 3 consecutive diagonally
-      }
-    }
-
-    // Check diagonal top-right
-    if (row > 0 && col < grid[row - 1].length - 1 && grid[row - 1][col + 1].letter == letter) {
-      if (row > 1 && col < grid[row - 2].length - 2 && grid[row - 2][col + 2].letter == letter) {
-        return true; // Would create 3 consecutive diagonally
-      }
-    }
-
-    return false;
-  }
-
-  bool _validateGrid(List<List<LetterTile>> grid, ConfigService config, String language) {
+  
+  // Validate a generated grid
+  bool _isValidGrid(List<List<LetterTile>> grid, int size, String language) {
     final frequencies = _dictionaryService.getLetterFrequencies(language);
-    final Map<String, int> letterCounts = {};
-
+    final letterCounts = <String, int>{};
+    
     // Count all letters
     for (final row in grid) {
       for (final tile in row) {
         letterCounts[tile.letter] = (letterCounts[tile.letter] ?? 0) + 1;
       }
     }
-
+    
+    // Scale max occurrences for larger grids
+    final maxUncommonForSize = size <= 5 ? 2 : (size == 6 ? 3 : (size == 7 ? 4 : 5));
+    final maxCommonForSize = size <= 5 ? 4 : (size == 6 ? 6 : (size == 7 ? 8 : 10));
+    
     // Check occurrence limits
     for (final entry in letterCounts.entries) {
       final letter = entry.key;
       final count = entry.value;
       final frequency = frequencies[letter] ?? 0;
-      final isUncommon = frequency < config.uncommonThreshold;
-      final maxOccurrences = isUncommon
-          ? config.maxUncommonLetterOccurrences
-          : config.maxCommonLetterOccurrences;
-
+      final isUncommon = frequency < 3.0;
+      final maxOccurrences = isUncommon ? maxUncommonForSize : maxCommonForSize;
+      
       if (count > maxOccurrences) {
-        return false; // Too many occurrences
+        return false;
       }
     }
-
-    // Check for 3+ consecutive identical letters
+    
+    // Check for 3+ consecutive identical letters in all directions
     for (int row = 0; row < grid.length; row++) {
       for (int col = 0; col < grid[row].length; col++) {
-        // Check horizontal
+        // Horizontal
         if (col <= grid[row].length - 3) {
           if (grid[row][col].letter == grid[row][col + 1].letter &&
               grid[row][col].letter == grid[row][col + 2].letter) {
             return false;
           }
         }
-        // Check vertical
+        // Vertical
         if (row <= grid.length - 3) {
           if (grid[row][col].letter == grid[row + 1][col].letter &&
               grid[row][col].letter == grid[row + 2][col].letter) {
             return false;
           }
         }
-        // Check diagonal (top-left to bottom-right)
+        // Diagonal (top-left to bottom-right)
         if (row <= grid.length - 3 && col <= grid[row].length - 3) {
           if (grid[row][col].letter == grid[row + 1][col + 1].letter &&
               grid[row][col].letter == grid[row + 2][col + 2].letter) {
             return false;
           }
         }
-        // Check diagonal (top-right to bottom-left)
+        // Diagonal (top-right to bottom-left)
         if (row <= grid.length - 3 && col >= 2) {
           if (grid[row][col].letter == grid[row + 1][col - 1].letter &&
               grid[row][col].letter == grid[row + 2][col - 2].letter) {
@@ -251,20 +189,17 @@ class GridGeneratorService {
         }
       }
     }
-
+    
     return true;
   }
-
-  String _selectLetterByFrequency(List<String> letters,
-      List<double> cumulativeFreq, double total, String language) {
+  
+  String _selectLetterByFrequency(List<String> letters, List<double> cumulativeFreq, double total) {
     final random = _random.nextDouble() * total;
-
     for (int i = 0; i < cumulativeFreq.length; i++) {
       if (random <= cumulativeFreq[i]) {
         return letters[i];
       }
     }
-
     return letters.last;
   }
 

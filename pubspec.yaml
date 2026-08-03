@@ -28,3 +28,4 @@ flutter:
     - assets/letter_values/
     - assets/letter_frequencies/
     - assets/config/
+    - assets/pregenerated_grids/
