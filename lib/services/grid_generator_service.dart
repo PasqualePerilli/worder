@@ -65,54 +65,60 @@ class GridGeneratorService {
   }
 
   void _addBonusTiles(List<List<LetterTile>> grid, int size) {
-    // Calculate center region (avoid edges)
-    final centerStart = (size * 0.25).floor();
-    final centerEnd = (size * 0.75).ceil();
-
-    // Create list of valid positions (not edges)
-    final validPositions = <List<int>>[];
-    for (int row = 1; row < size - 1; row++) {
-      for (int col = 1; col < size - 1; col++) {
-        validPositions.add([row, col]);
+    // Create list of all positions (for triple/double letters - can be anywhere)
+    final allPositions = <List<int>>[];
+    for (int row = 0; row < size; row++) {
+      for (int col = 0; col < size; col++) {
+        allPositions.add([row, col]);
       }
     }
 
-    // Shuffle positions
-    validPositions.shuffle(_random);
-
-    int index = 0;
-
-    // Add triple word (always center for small grids)
-    if (size >= 4) {
-      final centerRow = size ~/ 2;
-      final centerCol = size ~/ 2;
-      final tile = grid[centerRow][centerCol];
-      grid[centerRow][centerCol] = tile.copyWith(bonusType: BonusType.tripleWord);
-    } else if (validPositions.isNotEmpty) {
-      final pos = validPositions[index++];
-      final tile = grid[pos[0]][pos[1]];
-      grid[pos[0]][pos[1]] = tile.copyWith(bonusType: BonusType.tripleWord);
+    // Create list of center positions (not edges) for word bonuses
+    final centerPositions = <List<int>>[];
+    for (int row = 1; row < size - 1; row++) {
+      for (int col = 1; col < size - 1; col++) {
+        centerPositions.add([row, col]);
+      }
     }
 
-    // Add double words (2)
-    for (int i = 0; i < 2 && index < validPositions.length; i++) {
-      final pos = validPositions[index++];
-      final tile = grid[pos[0]][pos[1]];
-      grid[pos[0]][pos[1]] = tile.copyWith(bonusType: BonusType.doubleWord);
+    // Shuffle both lists
+    allPositions.shuffle(_random);
+    centerPositions.shuffle(_random);
+
+    // 1. Add triple word (3*) - ALWAYS in center
+    final centerRow = size ~/ 2;
+    final centerCol = size ~/ 2;
+    grid[centerRow][centerCol] = grid[centerRow][centerCol].copyWith(
+      bonusType: BonusType.tripleWord,
+    );
+
+    // Remove center position from available positions
+    centerPositions.removeWhere((pos) => pos[0] == centerRow && pos[1] == centerCol);
+    allPositions.removeWhere((pos) => pos[0] == centerRow && pos[1] == centerCol);
+
+    // 2. Add double words (2*) - two in center area (away from edges)
+    for (int i = 0; i < 2 && i < centerPositions.length; i++) {
+      final pos = centerPositions[i];
+      grid[pos[0]][pos[1]] = grid[pos[0]][pos[1]].copyWith(
+        bonusType: BonusType.doubleWord,
+      );
+      allPositions.removeWhere((p) => p[0] == pos[0] && p[1] == pos[1]);
     }
 
-    // Add triple letters (2)
-    for (int i = 0; i < 2 && index < validPositions.length; i++) {
-      final pos = validPositions[index++];
-      final tile = grid[pos[0]][pos[1]];
-      grid[pos[0]][pos[1]] = tile.copyWith(bonusType: BonusType.tripleLetter);
+    // 3. Add triple letters (3 circle) - two anywhere
+    for (int i = 0; i < 2 && i < allPositions.length; i++) {
+      final pos = allPositions[i];
+      grid[pos[0]][pos[1]] = grid[pos[0]][pos[1]].copyWith(
+        bonusType: BonusType.tripleLetter,
+      );
     }
 
-    // Add double letter (1)
-    if (index < validPositions.length) {
-      final pos = validPositions[index];
-      final tile = grid[pos[0]][pos[1]];
-      grid[pos[0]][pos[1]] = tile.copyWith(bonusType: BonusType.doubleLetter);
+    // 4. Add double letter (2 circle) - one anywhere
+    if (allPositions.length > 2) {
+      final pos = allPositions[2];
+      grid[pos[0]][pos[1]] = grid[pos[0]][pos[1]].copyWith(
+        bonusType: BonusType.doubleLetter,
+      );
     }
   }
 }

@@ -130,14 +130,31 @@ class TileWidget extends StatelessWidget {
         : 2;
 
     if (isWordBonus) {
-      // Star for word bonuses - bigger size
-      return Icon(
-        Icons.star,
-        size: 32,
-        color: _getBorderColor(config),
+      // Star for word bonuses with number inside
+      return SizedBox(
+        width: 32,
+        height: 32,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(
+              Icons.star,
+              size: 32,
+              color: _getBorderColor(config),
+            ),
+            Text(
+              '$multiplier',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       );
     } else {
-      // Circle for letter bonuses - bigger size
+      // Circle for letter bonuses with number inside
       return Container(
         width: 32,
         height: 32,

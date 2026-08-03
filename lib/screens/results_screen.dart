@@ -164,19 +164,37 @@ class _ResultsScreenState extends State<ResultsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.blue,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.home, color: Colors.white),
           onPressed: _goHome,
         ),
-        title: Text(
-          widget.gameState.language == 'italian' ? 'Risultati' : 'Results',
-          style: const TextStyle(color: Colors.white),
+        title: const Text(
+          'Results',
+          style: TextStyle(color: Colors.white),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Colors.white),
-            onPressed: _addOneMinute,
-            tooltip: '+1 minute',
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: GestureDetector(
+              onTap: _addOneMinute,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Text(
+                    '+',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),

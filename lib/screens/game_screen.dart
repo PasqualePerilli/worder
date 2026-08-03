@@ -454,24 +454,31 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   Widget _buildGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
+        const gridPadding = 16.0;
         return GestureDetector(
           onPanStart: (details) {
-            // Start selection on drag start
-            final cellWidth = constraints.maxWidth / _grid.length;
-            final cellHeight = constraints.maxHeight / _grid.length;
-            final row = (details.localPosition.dy / cellHeight).floor();
-            final col = (details.localPosition.dx / cellWidth).floor();
+            // Start selection on drag start (account for grid padding)
+            final adjustedX = details.localPosition.dx - gridPadding;
+            final adjustedY = details.localPosition.dy - gridPadding;
+            final gridSize = constraints.maxWidth - (gridPadding * 2);
+            final cellWidth = gridSize / _grid.length;
+            final cellHeight = gridSize / _grid.length;
+            final row = (adjustedY / cellHeight).floor();
+            final col = (adjustedX / cellWidth).floor();
 
             if (row >= 0 && row < _grid.length && col >= 0 && col < _grid.length) {
               _onTileEnter(row, col);
             }
           },
           onPanUpdate: (details) {
-            // Continue selection during drag
-            final cellWidth = constraints.maxWidth / _grid.length;
-            final cellHeight = constraints.maxHeight / _grid.length;
-            final row = (details.localPosition.dy / cellHeight).floor();
-            final col = (details.localPosition.dx / cellWidth).floor();
+            // Continue selection during drag (account for grid padding)
+            final adjustedX = details.localPosition.dx - gridPadding;
+            final adjustedY = details.localPosition.dy - gridPadding;
+            final gridSize = constraints.maxWidth - (gridPadding * 2);
+            final cellWidth = gridSize / _grid.length;
+            final cellHeight = gridSize / _grid.length;
+            final row = (adjustedY / cellHeight).floor();
+            final col = (adjustedX / cellWidth).floor();
 
             if (row >= 0 && row < _grid.length && col >= 0 && col < _grid.length) {
               _onTileEnter(row, col);
@@ -481,7 +488,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(gridPadding),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: _grid.length,
               crossAxisSpacing: 4,
