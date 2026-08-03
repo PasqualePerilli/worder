@@ -5,6 +5,30 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2026-08-03
+
+### Fixed
+- **Text sizing for large grids**: Letter and value text now scale down for 7x7 and 8x8 grids
+  - 7x7: Letter 16px (was 24px), Value 8px (was 10px)
+  - 8x8: Letter 14px (was 24px), Value 7px (was 10px)
+  - Previously, text was too large on 7x7/8x8 grids, making letter/value distinction difficult
+  - Bonus tiles had especially poor visibility with oversized text and indicators
+  - Text sizes now scale proportionally: larger for small grids, smaller for large grids
+
+### Improved
+- **Responsive text scaling**: TileWidget now adapts font sizes to grid size
+  - 4x4: Letter 28px, Value 11px (slightly larger for maximum readability)
+  - 5x5: Letter 24px, Value 10px (baseline)
+  - 6x6: Letter 20px, Value 9px
+  - 7x7: Letter 16px, Value 8px
+  - 8x8: Letter 14px, Value 7px
+  - Each grid size optimized for its available space
+
+### Changed
+- TileWidget: Added `gridSize` parameter
+- GameScreen: Passes `gridSize` when creating TileWidget instances
+- Font sizes: Computed dynamically using `_getLetterFontSize()` and `_getValueFontSize()`
+
 ## [1.3.2] - 2026-08-03
 
 ### Fixed
