@@ -10,12 +10,15 @@ class GridGeneratorService {
   Future<List<List<LetterTile>>> generateGrid(int size, String language) async {
     final config = await ConfigService.getInstance();
     
+    print('GridGenerator: Starting grid generation (size: $size, language: $language)');
+    
     // Try to generate a valid grid with retries
     for (int attempt = 0; attempt < config.maxGenerationRetries; attempt++) {
-      final grid = await _generateLetters(size, language, config);
+      final grid = _generateLetters(size, language, config);
       
       // Validate the grid
       if (_validateGrid(grid, config, language)) {
+        print('GridGenerator: Successfully generated valid grid on attempt ${attempt + 1}');
         // Add bonus tiles
         _addBonusTiles(grid, size);
         return grid;
@@ -23,14 +26,14 @@ class GridGeneratorService {
     }
     
     // Fallback: generate without strict rules if max retries exceeded
-    print('Warning: Could not generate grid with strict rules. Using relaxed rules.');
-    final grid = await _generateLettersRelaxed(size, language);
+    print('GridGenerator: Max retries exceeded, using relaxed rules');
+    final grid = _generateLettersRelaxed(size, language);
     _addBonusTiles(grid, size);
     return grid;
   }
 
-  Future<List<List<LetterTile>>> _generateLetters(
-      int size, String language, ConfigService config) async {
+  List<List<LetterTile>> _generateLetters(
+      int size, String language, ConfigService config) {
     final List<List<LetterTile>> grid = [];
     final frequencies = _dictionaryService.getLetterFrequencies(language);
     final letters = frequencies.keys.toList();
@@ -62,8 +65,9 @@ class GridGeneratorService {
         String? selectedLetter;
         int attempts = 0;
         
-        // Try to select a valid letter
-        while (selectedLetter == null && attempts < 50) {
+        // Try to select a valid letter (increased attempts for small grids)
+        final maxAttempts = size <= 4 ? 200 : 100;
+        while (selectedLetter == null && attempts < maxAttempts) {
           attempts++;
           final candidate = _selectLetterByFrequency(
               letters, cumulativeFreq, sum, language);
@@ -87,9 +91,17 @@ class GridGeneratorService {
           selectedLetter = candidate;
         }
         
-        // Fallback: if we couldn't find a valid letter, use a common one
+        // Fallback: if we couldn't find a valid letter with all constraints,
+        // at least avoid consecutive letters
         if (selectedLetter == null) {
-          selectedLetter = commonLetters[_random.nextInt(commonLetters.length)];
+          for (final letter in commonLetters) {
+            if (!_wouldCreateConsecutive(grid, row, col, letter, config.minDistanceSameLetter)) {
+              selectedLetter = letter;
+              break;
+            }
+          }
+          // If still null, just use any common letter
+          selectedLetter ??= commonLetters[_random.nextInt(commonLetters.length)];
         }
         
         // Update count
@@ -110,7 +122,7 @@ class GridGeneratorService {
     return grid;
   }
 
-  Future<List<List<LetterTile>>> _generateLettersRelaxed(int size, String language) async {
+  List<List<LetterTile>> _generateLettersRelaxed(int size, String language) {
     final List<List<LetterTile>> grid = [];
     final frequencies = _dictionaryService.getLetterFrequencies(language);
     final letters = frequencies.keys.toList();

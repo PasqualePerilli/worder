@@ -29,7 +29,7 @@ letter_distribution:
   # Prevent consecutive identical letters (min distance between same letters)
   min_distance_same_letter: 1
   # Maximum retries for grid generation
-  max_generation_retries: 100
+  max_generation_retries: 10
 
 # Bonus tile colors (hex format)
 colors:
