@@ -143,7 +143,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
           duration: const Duration(seconds: 3),
         ),
       );
-   
+    }
+  }
 
   Future<void> _shareResults() async {
     final config = await ConfigService.getInstance();
@@ -155,7 +156,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
       screenshotController: _screenshotController,
       topWords: topWords,
     );
-  } }
   }
 
   @override
@@ -385,7 +385,19 @@ class _ResultsScreenState extends State<ResultsScreen> {
         ),
       ),
       child: Row(
-        maRow(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ElevatedButton.icon(
+            onPressed: () {
+              setState(() {
+                _showAllWords = !_showAllWords;
+                _prepareWordList();
+              });
+            },
+            icon: Icon(_showAllWords ? Icons.visibility_off : Icons.visibility),
+            label: Text(_showAllWords ? 'Hide All' : 'Show All'),
+          ),
+          Row(
             children: [
               ElevatedButton.icon(
                 onPressed: _saveResults,
@@ -402,19 +414,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   foregroundColor: Colors.white,
                 ),
               ),
-            ]
-              setState(() {
-                _showAllWords = !_showAllWords;
-                _prepareWordList();
-              });
-            },
-            icon: Icon(_showAllWords ? Icons.visibility_off : Icons.visibility),
-            label: Text(_showAllWords ? 'Hide All' : 'Show All'),
-          ),
-          ElevatedButton.icon(
-            onPressed: _saveResults,
-            icon: const Icon(Icons.save),
-            label: const Text('Save'),
+            ],
           ),
         ],
       ),
