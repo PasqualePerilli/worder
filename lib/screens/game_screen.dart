@@ -371,7 +371,23 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         : '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade700,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.blue.shade900,
+          width: 3,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           // Timer
@@ -383,7 +399,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               color: Colors.white,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 12),
           // +1 Button
           GestureDetector(
             onTap: _addOneMinute,
@@ -415,9 +431,20 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           ),
           const Spacer(),
           // Stop Button
-          IconButton(
-            icon: const Icon(Icons.stop, color: Colors.white, size: 32),
+          ElevatedButton(
             onPressed: _endGame,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text(
+              'STOP',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -425,49 +452,57 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildGrid() {
-    return GestureDetector(
-      onPanEnd: (_) => _onSelectionEnd(),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: _grid.length,
-          crossAxisSpacing: 4,
-          mainAxisSpacing: 4,
-        ),
-        itemCount: _grid.length * _grid.length,
-        itemBuilder: (context, index) {
-          final row = index ~/ _grid.length;
-          final col = index % _grid.length;
-          final tile = _grid[row][col];
-          final pos = TilePosition(row, col);
-          final isSelected = _currentPath.contains(pos);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GestureDetector(
+          onPanStart: (details) {
+            // Start selection on drag start
+            final cellWidth = constraints.maxWidth / _grid.length;
+            final cellHeight = constraints.maxHeight / _grid.length;
+            final row = (details.localPosition.dy / cellHeight).floor();
+            final col = (details.localPosition.dx / cellWidth).floor();
 
-          return GestureDetector(
-            onPanUpdate: (details) {
-              final RenderBox box = context.findRenderObject() as RenderBox;
-              final localPosition = box.globalToLocal(details.globalPosition);
-              final cellWidth = box.size.width / _grid.length;
-              final cellHeight = box.size.height / _grid.length;
-              final newRow = (localPosition.dy / cellHeight).floor();
-              final newCol = (localPosition.dx / cellWidth).floor();
+            if (row >= 0 && row < _grid.length && col >= 0 && col < _grid.length) {
+              _onTileEnter(row, col);
+            }
+          },
+          onPanUpdate: (details) {
+            // Continue selection during drag
+            final cellWidth = constraints.maxWidth / _grid.length;
+            final cellHeight = constraints.maxHeight / _grid.length;
+            final row = (details.localPosition.dy / cellHeight).floor();
+            final col = (details.localPosition.dx / cellWidth).floor();
 
-              if (newRow >= 0 &&
-                  newRow < _grid.length &&
-                  newCol >= 0 &&
-                  newCol < _grid.length) {
-                _onTileEnter(newRow, newCol);
-              }
-            },
-            child: TileWidget(
-              tile: tile,
-              isSelected: isSelected,
-              onTapDown: () => _onTileEnter(row, col),
+            if (row >= 0 && row < _grid.length && col >= 0 && col < _grid.length) {
+              _onTileEnter(row, col);
+            }
+          },
+          onPanEnd: (_) => _onSelectionEnd(),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: _grid.length,
+              crossAxisSpacing: 4,
+              mainAxisSpacing: 4,
             ),
-          );
-        },
-      ),
+            itemCount: _grid.length * _grid.length,
+            itemBuilder: (context, index) {
+              final row = index ~/ _grid.length;
+              final col = index % _grid.length;
+              final tile = _grid[row][col];
+              final pos = TilePosition(row, col);
+              final isSelected = _currentPath.contains(pos);
+
+              return TileWidget(
+                tile: tile,
+                isSelected: isSelected,
+              );
+            },
+          ),
+        );
+      },
     );
   }
 

@@ -28,56 +28,65 @@ class TileWidget extends StatelessWidget {
         final config = snapshot.data!;
         final scale = isSelected ? config.tilePopupScale : 1.0;
 
+        final borderWidth = tile.bonusType != BonusType.none
+            ? 6.0  // Triple size for bonus tiles
+            : (isSelected || isHighlighted ? 3.0 : 2.0);
+
         return Transform.scale(
           scale: scale,
-          child: GestureDetector(
-            onPanDown: (_) => onTapDown?.call(),
-            child: Container(
-              margin: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: _getBackgroundColor(config),
-                border: Border.all(
-                  color: _getBorderColor(config),
-                  width: isSelected || isHighlighted ? 3 : 2,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              GestureDetector(
+                onPanDown: (_) => onTapDown?.call(),
+                child: Container(
+                  margin: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: _getBackgroundColor(config),
+                    border: Border.all(
+                      color: _getBorderColor(config),
+                      width: borderWidth,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Stack(
+                    children: [
+                      // Letter
+                      Center(
+                        child: Text(
+                          tile.letter,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      // Letter value (bottom right)
+                      Positioned(
+                        bottom: 2,
+                        right: 2,
+                        child: Text(
+                          '${tile.value}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(8),
               ),
-              child: Stack(
-                children: [
-                  // Letter
-                  Center(
-                    child: Text(
-                      tile.letter,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                  // Letter value (top right)
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: Text(
-                      '${tile.value}',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ),
-                  // Bonus indicator (top right, if applicable)
-                  if (tile.bonusType != BonusType.none)
-                    Positioned(
-                      top: 2,
-                      right: 2,
-                      child: _buildBonusIndicator(config),
-                    ),
-                ],
-              ),
-            ),
+              // Bonus indicator (extends outside tile)
+              if (tile.bonusType != BonusType.none)
+                Positioned(
+                  top: -8,
+                  right: -8,
+                  child: _buildBonusIndicator(config),
+                ),
+            ],
           ),
         );
       },
@@ -89,18 +98,8 @@ class TileWidget extends StatelessWidget {
       return _parseColor(config.selectedTileColor);
     }
 
-    switch (tile.bonusType) {
-      case BonusType.tripleWord:
-        return _parseColor(config.tripleWordColor).withOpacity(0.3);
-      case BonusType.doubleWord:
-        return _parseColor(config.doubleWordColor).withOpacity(0.3);
-      case BonusType.tripleLetter:
-        return _parseColor(config.tripleLetterColor).withOpacity(0.3);
-      case BonusType.doubleLetter:
-        return _parseColor(config.doubleLetterColor).withOpacity(0.3);
-      case BonusType.none:
-        return Colors.white;
-    }
+    // Always white background - only border is colored for bonus tiles
+    return Colors.white;
   }
 
   Color _getBorderColor(ConfigService config) {
@@ -131,17 +130,17 @@ class TileWidget extends StatelessWidget {
         : 2;
 
     if (isWordBonus) {
-      // Star for word bonuses
+      // Star for word bonuses - bigger size
       return Icon(
         Icons.star,
-        size: 16,
+        size: 32,
         color: _getBorderColor(config),
       );
     } else {
-      // Circle for letter bonuses
+      // Circle for letter bonuses - bigger size
       return Container(
-        width: 16,
-        height: 16,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: _getBorderColor(config),
@@ -150,7 +149,7 @@ class TileWidget extends StatelessWidget {
           child: Text(
             '$multiplier',
             style: const TextStyle(
-              fontSize: 10,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
