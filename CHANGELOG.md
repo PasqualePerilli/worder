@@ -5,6 +5,50 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-03
+
+### Fixed
+- **CRITICAL**: Drag selection ACTUALLY works now (root cause identified and fixed)
+  - Removed GestureDetector from TileWidget that was consuming touch events
+  - Removed onPanDown handler that blocked parent gesture detection
+  - Parent GestureDetector now properly receives all pan gestures
+  - **This was the actual problem** - child widgets were intercepting gestures
+
+### Added
+- Intelligent letter distribution system with configurable constraints:
+  - Maximum occurrences for uncommon letters (< 3% frequency): 2 per grid
+  - Maximum occurrences for common letters (≥ 3% frequency): 4 per grid
+  - Prevents 3+ consecutive identical letters in any direction (horizontal, vertical, all diagonals)
+  - Validates entire grid after generation with up to 100 retries
+  - Falls back to relaxed rules only if unable to generate valid grid
+- New settings in settings.yaml:
+  - `letter_distribution.max_uncommon_letter_occurrences`: 2
+  - `letter_distribution.max_common_letter_occurrences`: 4
+  - `letter_distribution.uncommon_threshold`: 3.0%
+  - `letter_distribution.min_distance_same_letter`: 1
+  - `letter_distribution.max_generation_retries`: 100
+
+### Changed
+- Grid generation is now asynchronous to support validation and retry logic
+- Letter rarity classification based on language frequency data
+- Improved grid quality with balanced letter distribution
+
+### Technical
+- Added ConfigService getters for all distribution settings
+- Completely rewrote GridGeneratorService:
+  - `_generateLetters()`: Smart generation with constraint enforcement
+  - `_generateLettersRelaxed()`: Fallback for edge cases
+  - `_wouldCreateConsecutive()`: Checks for consecutive letter violations
+  - `_validateGrid()`: Post-generation validation
+- Updated GameScreen to await async grid generation
+
+### Examples of Fixed Issues
+- ✅ No more 4 "V" letters in a 4×4 grid
+- ✅ No more 3 consecutive "R" letters in a column
+- ✅ No more rows entirely composed of consonants
+- ✅ No more 2 uncommon "U" vowels in small grids
+- ✅ Balanced distribution prevents disappointing letter combinations
+
 ## [1.1.2] - 2026-08-03
 
 ### Fixed
