@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.github.pasqualeperilli.worder"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
