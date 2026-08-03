@@ -278,6 +278,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
               ),
               Column(
                 children: [
+                  const Text('Words', style: TextStyle(fontSize: 16)),
+                  Text(
+                    '${widget.gameState.foundWords.length}',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                children: [
                   const Text('Time', style: TextStyle(fontSize: 16)),
                   Text(
                     timeText,
