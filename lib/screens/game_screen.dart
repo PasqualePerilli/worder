@@ -251,7 +251,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     });
   }
 
-  void _onSelectionEnd() async {
+  Future<void> _onSelectionEnd() async {
+    print('GameScreen: _onSelectionEnd called, path length: ${_currentPath.length}');
     if (_currentPath.isEmpty) return;
 
     final config = await ConfigService.getInstance();
@@ -498,7 +499,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               _onTileEnter(row, col);
             }
           },
-          onPanEnd: (_) => _onSelectionEnd(),
+          onPanEnd: (details) {
+            print('GameScreen: onPanEnd triggered');
+            _onSelectionEnd();
+          },
+          onPanCancel: () {
+            print('GameScreen: onPanCancel triggered');
+            _onSelectionEnd();
+          },
           child: GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
