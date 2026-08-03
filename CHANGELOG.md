@@ -5,6 +5,28 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-08-03
+
+### Fixed
+- **CRITICAL**: Drag selection now works correctly
+  - Fixed coordinate calculation to account for GridView padding
+  - onPanStart and onPanUpdate now properly detect tile positions
+  - Drag gesture consistently captures tile selections
+- **CRITICAL**: Bonus tiles now always appear in every game
+  - Triple Word (3★) always placed in exact center of grid
+  - Double Word (2★) two tiles in center area (away from edges)
+  - Triple Letter (3●) two tiles anywhere on grid
+  - Double Letter (2●) one tile anywhere on grid
+  - Simplified placement logic to guarantee all bonus types
+- Bonus indicator stars now display multiplier number (2 or 3) inside
+  - Stack widget overlays text on star icon
+  - Circles already showed numbers correctly
+- Results screen title now always shows "Results" (language-independent)
+- Results screen title is now centered in AppBar
+- Results screen + button now matches game screen styling
+  - White container with + text instead of icon button
+  - Visual consistency across screens
+
 ## [1.1.0] - 2026-08-03
 
 ### Changed
