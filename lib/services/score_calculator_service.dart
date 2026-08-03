@@ -130,29 +130,3 @@ class ScoreCalculatorService {
     visited.remove(pos);
   }
 }
-
-class TilePosition {
-  final int row;
-  final int col;
-
-  const TilePosition(this.row, this.col);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TilePosition &&
-          runtimeType == other.runtimeType &&
-          row == other.row &&
-          col == other.col;
-
-  @override
-  int get hashCode => row.hashCode ^ col.hashCode;
-
-  Map<String, dynamic> toJson() {
-    return {'row': row, 'col': col};
-  }
-
-  factory TilePosition.fromJson(Map<String, dynamic> json) {
-    return TilePosition(json['row'] as int, json['col'] as int);
-  }
-}
