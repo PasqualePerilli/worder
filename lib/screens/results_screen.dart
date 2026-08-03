@@ -454,6 +454,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
             onPressed: () {
               setState(() {
                 _showAllWords = !_showAllWords;
+                _selectedWordIndex = null; // Clear selection when toggling modes
                 _prepareWordList();
               });
             },

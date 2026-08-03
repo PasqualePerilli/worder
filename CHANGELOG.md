@@ -5,6 +5,14 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-08-03
+
+### Fixed
+- **Gray screen bug in results** when toggling between "Show All" and "Hide All" modes
+  - Previously: selecting a word in "Show All" then clicking "Hide All" caused gray screen
+  - Now: selected word index is cleared when toggling modes
+  - Mini-grid disappears cleanly when switching between view modes
+
 ## [1.4.2] - 2026-08-03
 
 ### Improved
