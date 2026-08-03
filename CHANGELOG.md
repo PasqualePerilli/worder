@@ -5,6 +5,20 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.6] - 2026-08-03
+
+### Fixed
+- **Grid now playable again** - reverted excessive spacing that made tiles tiny
+  - Spacing reduced from 72px back to 8px (Ruzzle-like)
+  - Tiles are now large and easy to reach
+  - Grid fills screen properly
+- **Improved diagonal selection accuracy**
+  - Added minimum drag distance threshold (20px)
+  - Must drag 20 pixels before selection starts
+  - Prevents accidental tile selection from small movements/taps
+  - Selection starts at drag origin, continues to current position
+  - More deliberate gesture required = fewer mistakes
+
 ## [1.3.5] - 2026-08-03
 
 ### Changed

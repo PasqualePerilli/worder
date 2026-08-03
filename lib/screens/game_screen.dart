@@ -39,6 +39,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   int? _lastWordScore; // Score of the last submitted word for preview bar
   Timer? _gameTimer;
   final Set<String> _foundWordStrings = {};
+  
+  // Track drag start position to prevent accidental selections
+  Offset? _dragStartPosition;
+  bool _hasStartedSelecting = false;
+  static const double _minDragDistance = 20.0; // Minimum pixels to drag before selecting
 
   final DictionaryService _dictionaryService = DictionaryService.getInstance();
   final GridGeneratorService _gridGenerator = GridGeneratorService();
@@ -523,21 +528,38 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onPanStart: (details) {
-            // Start selection on drag start (account for grid padding)
-            final adjustedX = details.localPosition.dx - gridPadding;
-            final adjustedY = details.localPosition.dy - gridPadding;
-            final gridSize = constraints.maxWidth - (gridPadding * 2);
-            final cellWidth = gridSize / _grid!.length;
-            final cellHeight = gridSize / _grid!.length;
-            final row = (adjustedY / cellHeight).floor();
-            final col = (adjustedX / cellWidth).floor();
-
-            if (row >= 0 && row < _grid!.length && col >= 0 && col < _grid!.length) {
-              _onTileEnter(row, col);
-            }
+            // Record start position but don't select yet
+            _dragStartPosition = details.localPosition;
+            _hasStartedSelecting = false;
           },
           onPanUpdate: (details) {
-            // Continue selection during drag (account for grid padding)
+            if (_dragStartPosition == null) return;
+            
+            // Calculate distance from start
+            final dragDistance = (details.localPosition - _dragStartPosition!).distance;
+            
+            // Only start selecting after minimum drag distance
+            if (!_hasStartedSelecting && dragDistance < _minDragDistance) {
+              return;
+            }
+            
+            if (!_hasStartedSelecting) {
+              _hasStartedSelecting = true;
+              // Start selection at the drag start position
+              final adjustedX = _dragStartPosition!.dx - gridPadding;
+              final adjustedY = _dragStartPosition!.dy - gridPadding;
+              final gridSize = constraints.maxWidth - (gridPadding * 2);
+              final cellWidth = gridSize / _grid!.length;
+              final cellHeight = gridSize / _grid!.length;
+              final row = (adjustedY / cellHeight).floor();
+              final col = (adjustedX / cellWidth).floor();
+
+              if (row >= 0 && row < _grid!.length && col >= 0 && col < _grid!.length) {
+                _onTileEnter(row, col);
+              }
+            }
+            
+            // Continue selection at current position
             final adjustedX = details.localPosition.dx - gridPadding;
             final adjustedY = details.localPosition.dy - gridPadding;
             final gridSize = constraints.maxWidth - (gridPadding * 2);
@@ -552,10 +574,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           },
           onPanEnd: (details) {
             print('GameScreen: onPanEnd triggered');
+            _dragStartPosition = null;
+            _hasStartedSelecting = false;
             _onSelectionEnd();
           },
           onPanCancel: () {
             print('GameScreen: onPanCancel triggered');
+            _dragStartPosition = null;
+            _hasStartedSelecting = false;
             _onSelectionEnd();
           },
           child: GridView.builder(
@@ -564,8 +590,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             padding: const EdgeInsets.all(gridPadding),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: _grid!.length,
-              crossAxisSpacing: 72,
-              mainAxisSpacing: 72,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
             ),
             itemCount: _grid!.length * _grid!.length,
             itemBuilder: (context, index) {
