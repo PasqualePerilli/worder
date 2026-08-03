@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../models/game_state.dart';
 import '../models/found_word.dart';
+import '../models/game_settings.dart';
 import '../services/dictionary_service.dart';
 import '../services/score_calculator_service.dart';
 import '../services/config_service.dart';
@@ -404,13 +405,6 @@ class WordDisplay {
     required this.isFound,
     required this.path,
   });
-}
-
-class TilePosition {
-  final int row;
-  final int col;
-
-  const TilePosition(this.row, this.col);
 }
 
 extension GameStateExtension on GameState {
