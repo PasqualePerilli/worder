@@ -101,4 +101,20 @@ class ConfigService {
   String get manualScreenshotMessage =>
       (_config['share']?['manual_screenshot_message'] as String?) ??
       'Take a screenshot of your results to share!';
+
+  // Letter distribution settings
+  int get maxUncommonLetterOccurrences =>
+      (_config['letter_distribution']?['max_uncommon_letter_occurrences'] as int?) ?? 2;
+
+  int get maxCommonLetterOccurrences =>
+      (_config['letter_distribution']?['max_common_letter_occurrences'] as int?) ?? 4;
+
+  double get uncommonThreshold =>
+      ((_config['letter_distribution']?['uncommon_threshold'] as num?) ?? 3.0).toDouble();
+
+  int get minDistanceSameLetter =>
+      (_config['letter_distribution']?['min_distance_same_letter'] as int?) ?? 1;
+
+  int get maxGenerationRetries =>
+      (_config['letter_distribution']?['max_generation_retries'] as int?) ?? 100;
 }

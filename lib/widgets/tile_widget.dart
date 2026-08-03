@@ -6,14 +6,12 @@ class TileWidget extends StatelessWidget {
   final LetterTile tile;
   final bool isSelected;
   final bool isHighlighted;
-  final VoidCallback? onTapDown;
 
   const TileWidget({
     super.key,
     required this.tile,
     this.isSelected = false,
     this.isHighlighted = false,
-    this.onTapDown,
   });
 
   @override
@@ -37,46 +35,43 @@ class TileWidget extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              GestureDetector(
-                onPanDown: (_) => onTapDown?.call(),
-                child: Container(
-                  margin: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: _getBackgroundColor(config),
-                    border: Border.all(
-                      color: _getBorderColor(config),
-                      width: borderWidth,
+              Container(
+                margin: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: _getBackgroundColor(config),
+                  border: Border.all(
+                    color: _getBorderColor(config),
+                    width: borderWidth,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Stack(
+                  children: [
+                    // Letter
+                    Center(
+                      child: Text(
+                        tile.letter,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Stack(
-                    children: [
-                      // Letter
-                      Center(
-                        child: Text(
-                          tile.letter,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                    // Letter value (bottom right)
+                    Positioned(
+                      bottom: 2,
+                      right: 2,
+                      child: Text(
+                        '${tile.value}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54,
                         ),
                       ),
-                      // Letter value (bottom right)
-                      Positioned(
-                        bottom: 2,
-                        right: 2,
-                        child: Text(
-                          '${tile.value}',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
               // Bonus indicator (extends outside tile)

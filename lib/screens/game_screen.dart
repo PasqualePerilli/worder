@@ -88,9 +88,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       });
     } else {
       // Start new game
+      final grid = await _gridGenerator.generateGrid(
+          widget.settings.gridSize, widget.settings.language);
+      
       setState(() {
-        _grid = _gridGenerator.generateGrid(
-            widget.settings.gridSize, widget.settings.language);
+        _grid = grid;
         _foundWords = [];
         _currentScore = 0;
         _startTime = DateTime.now();

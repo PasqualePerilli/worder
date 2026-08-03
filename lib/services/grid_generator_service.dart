@@ -1,22 +1,116 @@
 import 'dart:math';
 import '../models/letter_tile.dart';
 import 'dictionary_service.dart';
+import 'config_service.dart';
 
 class GridGeneratorService {
   final Random _random = Random();
   final DictionaryService _dictionaryService = DictionaryService.getInstance();
 
-  List<List<LetterTile>> generateGrid(int size, String language) {
-    // Generate letter grid with proper distribution
-    final List<List<LetterTile>> grid = _generateLetters(size, language);
-
-    // Add bonus tiles
+  Future<List<List<LetterTile>>> generateGrid(int size, String language) async {
+    final config = await ConfigService.getInstance();
+    
+    // Try to generate a valid grid with retries
+    for (int attempt = 0; attempt < config.maxGenerationRetries; attempt++) {
+      final grid = await _generateLetters(size, language, config);
+      
+      // Validate the grid
+      if (_validateGrid(grid, config, language)) {
+        // Add bonus tiles
+        _addBonusTiles(grid, size);
+        return grid;
+      }
+    }
+    
+    // Fallback: generate without strict rules if max retries exceeded
+    print('Warning: Could not generate grid with strict rules. Using relaxed rules.');
+    final grid = await _generateLettersRelaxed(size, language);
     _addBonusTiles(grid, size);
+    return grid;
+  }
+
+  Future<List<List<LetterTile>>> _generateLetters(
+      int size, String language, ConfigService config) async {
+    final List<List<LetterTile>> grid = [];
+    final frequencies = _dictionaryService.getLetterFrequencies(language);
+    final letters = frequencies.keys.toList();
+    final Map<String, int> letterCounts = {};
+
+    // Classify letters as common or uncommon
+    final commonLetters = <String>[];
+    final uncommonLetters = <String>[];
+    for (final letter in letters) {
+      if (frequencies[letter]! >= config.uncommonThreshold) {
+        commonLetters.add(letter);
+      } else {
+        uncommonLetters.add(letter);
+      }
+    }
+
+    // Create cumulative frequency distribution
+    final cumulativeFreq = <double>[];
+    double sum = 0;
+    for (final letter in letters) {
+      sum += frequencies[letter]!;
+      cumulativeFreq.add(sum);
+    }
+
+    // Generate grid with distribution constraints
+    for (int row = 0; row < size; row++) {
+      final List<LetterTile> rowList = [];
+      for (int col = 0; col < size; col++) {
+        String? selectedLetter;
+        int attempts = 0;
+        
+        // Try to select a valid letter
+        while (selectedLetter == null && attempts < 50) {
+          attempts++;
+          final candidate = _selectLetterByFrequency(
+              letters, cumulativeFreq, sum, language);
+          
+          // Check occurrence limits
+          final currentCount = letterCounts[candidate] ?? 0;
+          final isUncommon = uncommonLetters.contains(candidate);
+          final maxOccurrences = isUncommon
+              ? config.maxUncommonLetterOccurrences
+              : config.maxCommonLetterOccurrences;
+          
+          if (currentCount >= maxOccurrences) {
+            continue; // Try another letter
+          }
+          
+          // Check for consecutive identical letters
+          if (_wouldCreateConsecutive(grid, row, col, candidate, config.minDistanceSameLetter)) {
+            continue; // Try another letter
+          }
+          
+          selectedLetter = candidate;
+        }
+        
+        // Fallback: if we couldn't find a valid letter, use a common one
+        if (selectedLetter == null) {
+          selectedLetter = commonLetters[_random.nextInt(commonLetters.length)];
+        }
+        
+        // Update count
+        letterCounts[selectedLetter] = (letterCounts[selectedLetter] ?? 0) + 1;
+        
+        final value = _dictionaryService.getLetterValue(selectedLetter, language);
+        rowList.add(LetterTile(
+          letter: selectedLetter,
+          value: value,
+          bonusType: BonusType.none,
+          row: row,
+          col: col,
+        ));
+      }
+      grid.add(rowList);
+    }
 
     return grid;
   }
 
-  List<List<LetterTile>> _generateLetters(int size, String language) {
+  Future<List<List<LetterTile>>> _generateLettersRelaxed(int size, String language) async {
     final List<List<LetterTile>> grid = [];
     final frequencies = _dictionaryService.getLetterFrequencies(language);
     final letters = frequencies.keys.toList();
@@ -29,7 +123,7 @@ class GridGeneratorService {
       cumulativeFreq.add(sum);
     }
 
-    // Generate grid with weighted random selection
+    // Generate grid with weighted random selection (original logic)
     for (int row = 0; row < size; row++) {
       final List<LetterTile> rowList = [];
       for (int col = 0; col < size; col++) {
@@ -49,6 +143,104 @@ class GridGeneratorService {
     }
 
     return grid;
+  }
+
+  bool _wouldCreateConsecutive(List<List<LetterTile>> grid, int row, int col,
+      String letter, int minDistance) {
+    // Check horizontal (left neighbor)
+    if (col > 0 && grid[row][col - 1].letter == letter) {
+      // Check if this would create 3+ consecutive
+      if (col > 1 && grid[row][col - 2].letter == letter) {
+        return true; // Would create 3 consecutive horizontally
+      }
+    }
+
+    // Check vertical (top neighbor)
+    if (row > 0 && grid[row - 1][col].letter == letter) {
+      // Check if this would create 3+ consecutive
+      if (row > 1 && grid[row - 2][col].letter == letter) {
+        return true; // Would create 3 consecutive vertically
+      }
+    }
+
+    // Check diagonal top-left
+    if (row > 0 && col > 0 && grid[row - 1][col - 1].letter == letter) {
+      if (row > 1 && col > 1 && grid[row - 2][col - 2].letter == letter) {
+        return true; // Would create 3 consecutive diagonally
+      }
+    }
+
+    // Check diagonal top-right
+    if (row > 0 && col < grid[row - 1].length - 1 && grid[row - 1][col + 1].letter == letter) {
+      if (row > 1 && col < grid[row - 2].length - 2 && grid[row - 2][col + 2].letter == letter) {
+        return true; // Would create 3 consecutive diagonally
+      }
+    }
+
+    return false;
+  }
+
+  bool _validateGrid(List<List<LetterTile>> grid, ConfigService config, String language) {
+    final frequencies = _dictionaryService.getLetterFrequencies(language);
+    final Map<String, int> letterCounts = {};
+
+    // Count all letters
+    for (final row in grid) {
+      for (final tile in row) {
+        letterCounts[tile.letter] = (letterCounts[tile.letter] ?? 0) + 1;
+      }
+    }
+
+    // Check occurrence limits
+    for (final entry in letterCounts.entries) {
+      final letter = entry.key;
+      final count = entry.value;
+      final frequency = frequencies[letter] ?? 0;
+      final isUncommon = frequency < config.uncommonThreshold;
+      final maxOccurrences = isUncommon
+          ? config.maxUncommonLetterOccurrences
+          : config.maxCommonLetterOccurrences;
+
+      if (count > maxOccurrences) {
+        return false; // Too many occurrences
+      }
+    }
+
+    // Check for 3+ consecutive identical letters
+    for (int row = 0; row < grid.length; row++) {
+      for (int col = 0; col < grid[row].length; col++) {
+        // Check horizontal
+        if (col <= grid[row].length - 3) {
+          if (grid[row][col].letter == grid[row][col + 1].letter &&
+              grid[row][col].letter == grid[row][col + 2].letter) {
+            return false;
+          }
+        }
+        // Check vertical
+        if (row <= grid.length - 3) {
+          if (grid[row][col].letter == grid[row + 1][col].letter &&
+              grid[row][col].letter == grid[row + 2][col].letter) {
+            return false;
+          }
+        }
+        // Check diagonal (top-left to bottom-right)
+        if (row <= grid.length - 3 && col <= grid[row].length - 3) {
+          if (grid[row][col].letter == grid[row + 1][col + 1].letter &&
+              grid[row][col].letter == grid[row + 2][col + 2].letter) {
+            return false;
+          }
+        }
+        // Check diagonal (top-right to bottom-left)
+        if (row <= grid.length - 3 && col >= 2) {
+          if (grid[row][col].letter == grid[row + 1][col - 1].letter &&
+              grid[row][col].letter == grid[row + 2][col - 2].letter) {
+            return false;
+          }
+        }
+      }
+    }
+
+    return true;
   }
 
   String _selectLetterByFrequency(List<String> letters,
