@@ -117,4 +117,17 @@ class ConfigService {
 
   int get maxGenerationRetries =>
       (_config['letter_distribution']?['max_generation_retries'] as int?) ?? 100;
+
+  // Tile font scaling ratios
+  double get letterSizeRatio =>
+      ((_config['tile_fonts']?['letter_size_ratio'] as num?) ?? 0.6).toDouble();
+
+  double get valueSizeRatio =>
+      ((_config['tile_fonts']?['value_size_ratio'] as num?) ?? 0.25).toDouble();
+
+  double get bonusIndicatorRatio =>
+      ((_config['tile_fonts']?['bonus_indicator_ratio'] as num?) ?? 0.5).toDouble();
+
+  double get bonusNumberRatio =>
+      ((_config['tile_fonts']?['bonus_number_ratio'] as num?) ?? 0.35).toDouble();
 }

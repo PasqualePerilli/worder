@@ -5,6 +5,25 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-08-03
+
+### Changed
+- **Responsive font sizing** - tile fonts now scale proportionally with screen size
+  - Added YAML settings for font ratios: `tile_fonts` section in settings.yaml
+  - Letter size: 60% of tile height
+  - Value size: 25% of tile height
+  - Bonus indicator: 50% of tile (reduced from hardcoded sizes)
+  - Bonus number: 35% of indicator
+  - Uses LayoutBuilder to calculate based on actual tile dimensions
+  - Perfect scaling across all screen sizes (phones, tablets, desktops)
+  - No more wasted space on large screens
+  - Text fills tiles proportionally instead of fixed pixel sizes
+
+### Technical
+- Removed hardcoded font size methods from tile_widget.dart
+- Added ConfigService getters for font ratios
+- Implemented dynamic font calculation using LayoutBuilder
+
 ## [1.4.3] - 2026-08-03
 
 ### Fixed

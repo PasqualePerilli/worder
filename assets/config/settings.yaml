@@ -18,6 +18,13 @@ grid:
     triple_letter_count: 2
     double_letter_count: 1
 
+# Tile font scaling (as percentage of tile size)
+tile_fonts:
+  letter_size_ratio: 0.6      # Letter takes 60% of tile height
+  value_size_ratio: 0.25      # Value takes 25% of tile height
+  bonus_indicator_ratio: 0.5  # Bonus indicator 50% of tile
+  bonus_number_ratio: 0.35    # Bonus number 35% of indicator
+
 # Letter distribution settings
 letter_distribution:
   # Maximum occurrences of uncommon letters (frequency < 3%)
