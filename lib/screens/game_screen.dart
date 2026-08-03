@@ -23,7 +23,7 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
-  late List<List<LetterTile>> _grid;
+  List<List<LetterTile>>? _grid;
   late List<FoundWord> _foundWords;
   late int _currentScore;
   late DateTime _startTime;
@@ -31,6 +31,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   late int _gameDurationMinutes;
   late bool _isPaused;
   late bool _showAddedTime;
+  bool _isLoading = true;
 
   final List<TilePosition> _currentPath = [];
   String _currentWord = '';
@@ -82,6 +83,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _gameDurationMinutes = savedGame.gameDurationMinutes;
         _isPaused = savedGame.isPaused;
         _showAddedTime = false;
+        _isLoading = false;
 
         _foundWordStrings
             .addAll(savedGame.foundWords.map((w) => w.word.toUpperCase()));
@@ -100,6 +102,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _gameDurationMinutes = widget.settings.gameDurationMinutes;
         _isPaused = false;
         _showAddedTime = false;
+        _isLoading = false;
       });
     }
 
@@ -142,7 +145,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   Future<void> _saveGameState() async {
     final gameState = GameState(
-      grid: _grid,
+      grid: _grid!,
       foundWords: _foundWords,
       currentScore: _currentScore,
       startTime: _startTime,
@@ -161,7 +164,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     _gameTimer?.cancel();
     
     final gameState = GameState(
-      grid: _grid,
+      grid: _grid!,
       foundWords: _foundWords,
       currentScore: _currentScore,
       startTime: _startTime,
@@ -243,7 +246,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
     setState(() {
       _currentPath.add(pos);
-      _currentWord += _grid[row][col].letter;
+      _currentWord += _grid![row][col].letter;
       _previewState = PreviewBarState.selecting;
     });
   }
@@ -272,11 +275,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
     if (isValid) {
       // Calculate score
-      final tiles = _currentPath.map((pos) => _grid[pos.row][pos.col]).toList();
+      final tiles = _currentPath.map((pos) => _grid![pos.row][pos.col]).toList();
       final score =
           _scoreCalculator.calculateWordScore(tiles, widget.settings.language);
       final maxScore = _scoreCalculator.calculateMaxPossibleScore(
-          word, _grid, widget.settings.language);
+          word, _grid!, widget.settings.language);
 
       final foundWord = FoundWord(
         word: word,
@@ -334,6 +337,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
         final config = snapshot.data!;
         final backgroundColor = _parseColor(config.backgroundGameColor);
+
+        // Show loading indicator while grid is being generated
+        if (_isLoading || _grid == null) {
+          return Scaffold(
+            backgroundColor: backgroundColor,
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
 
         return Scaffold(
           backgroundColor: backgroundColor,
@@ -464,12 +475,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             final adjustedX = details.localPosition.dx - gridPadding;
             final adjustedY = details.localPosition.dy - gridPadding;
             final gridSize = constraints.maxWidth - (gridPadding * 2);
-            final cellWidth = gridSize / _grid.length;
-            final cellHeight = gridSize / _grid.length;
+            final cellWidth = gridSize / _grid!.length;
+            final cellHeight = gridSize / _grid!.length;
             final row = (adjustedY / cellHeight).floor();
             final col = (adjustedX / cellWidth).floor();
 
-            if (row >= 0 && row < _grid.length && col >= 0 && col < _grid.length) {
+            if (row >= 0 && row < _grid!.length && col >= 0 && col < _grid!.length) {
               _onTileEnter(row, col);
             }
           },
@@ -478,12 +489,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             final adjustedX = details.localPosition.dx - gridPadding;
             final adjustedY = details.localPosition.dy - gridPadding;
             final gridSize = constraints.maxWidth - (gridPadding * 2);
-            final cellWidth = gridSize / _grid.length;
-            final cellHeight = gridSize / _grid.length;
+            final cellWidth = gridSize / _grid!.length;
+            final cellHeight = gridSize / _grid!.length;
             final row = (adjustedY / cellHeight).floor();
             final col = (adjustedX / cellWidth).floor();
 
-            if (row >= 0 && row < _grid.length && col >= 0 && col < _grid.length) {
+            if (row >= 0 && row < _grid!.length && col >= 0 && col < _grid!.length) {
               _onTileEnter(row, col);
             }
           },
@@ -493,15 +504,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.all(gridPadding),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: _grid.length,
+              crossAxisCount: _grid!.length,
               crossAxisSpacing: 4,
               mainAxisSpacing: 4,
             ),
-            itemCount: _grid.length * _grid.length,
+            itemCount: _grid!.length * _grid!.length,
             itemBuilder: (context, index) {
-              final row = index ~/ _grid.length;
-              final col = index % _grid.length;
-              final tile = _grid[row][col];
+              final row = index ~/ _grid!.length;
+              final col = index % _grid!.length;
+              final tile = _grid![row][col];
               final pos = TilePosition(row, col);
               final isSelected = _currentPath.contains(pos);
 
