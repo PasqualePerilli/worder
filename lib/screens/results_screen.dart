@@ -319,7 +319,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
         return GestureDetector(
           onTap: () {
             setState(() {
-              _selectedWordIndex = index;
+              // Toggle: if same word is tapped, hide grid; otherwise show grid for this word
+              _selectedWordIndex = _selectedWordIndex == index ? null : index;
             });
           },
           child: Container(

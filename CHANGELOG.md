@@ -5,6 +5,22 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-03
+
+### Changed
+- **Results screen grid toggle** - tapping the same word again now hides the grid
+  - First tap on a word: shows grid with highlighted path
+  - Second tap on same word: hides grid
+  - Tap on different word: switches to that word's grid
+  - Cleaner UX for browsing words
+
+### Fixed
+- **Disabled back button during gameplay** to prevent accidental exits
+  - Edge tiles (especially bottom-right corner) can now be selected without triggering back navigation
+  - Android edge swipe gestures no longer interfere with tile selection
+  - Use the STOP button to intentionally end the game
+  - Prevents accidental game exits when selecting edge tiles
+
 ## [1.3.9] - 2026-08-03
 
 ### Fixed

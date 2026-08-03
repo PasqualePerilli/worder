@@ -432,29 +432,32 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           );
         }
 
-        return Scaffold(
-          backgroundColor: backgroundColor,
-          body: SafeArea(
-            child: Stack(
-              children: [
-                Column(
-                  children: [
-                    _buildTopBar(config),
-                    PreviewBar(
-                      word: _currentWord,
-                      state: _previewState,
-                      score: _lastWordScore,
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: _buildGrid(),
+        return PopScope(
+          canPop: false, // Disable back button during gameplay
+          child: Scaffold(
+            backgroundColor: backgroundColor,
+            body: SafeArea(
+              child: Stack(
+                children: [
+                  Column(
+                    children: [
+                      _buildTopBar(config),
+                      PreviewBar(
+                        word: _currentWord,
+                        state: _previewState,
+                        score: _lastWordScore,
                       ),
-                    ),
-                  ],
-                ),
-                if (_isPaused) _buildPauseOverlay(),
-                if (_showAddedTime) _buildAddedTimeOverlay(config),
-              ],
+                      Expanded(
+                        child: Center(
+                          child: _buildGrid(),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_isPaused) _buildPauseOverlay(),
+                  if (_showAddedTime) _buildAddedTimeOverlay(config),
+                ],
+              ),
             ),
           ),
         );
