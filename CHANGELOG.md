@@ -5,6 +5,40 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-03
+
+### Changed
+- **MAJOR**: Complete rewrite of grid generation algorithm
+  - Previous algorithm was fundamentally flawed (needed 200 retries per tile)
+  - New approach: generate first, validate after (same as successful generation script)
+  - Runtime generation now completes in <10ms (was >1000ms)
+  - Algorithm tries 10 times to generate valid grid, usually succeeds on attempt 1-2
+  
+### Added
+- Pre-generated grids as fallback (1000 grids per language/size combination)
+  - 10 JSON files: italian/english × 4x4/5x5/6x6/7x7/8x8
+  - Total: 10,000 pre-validated grids
+  - Used only if runtime generation fails (extremely rare)
+  - Adds ~3MB to APK size
+- Generation script: `scripts/generate_grids.dart`
+
+### Removed
+- Complex per-tile constraint checking (root cause of slowness)
+- ConfigService dependency from grid generator
+- `_generateLetters()`, `_generateLettersRelaxed()`, `_wouldCreateConsecutive()` methods
+- Retry logic (200 attempts per tile)
+
+### Technical
+- New `_generateSingleGrid()`: simple weighted random, entire grid at once
+- New `_isValidGrid()`: validates complete grid, size-scaled limits
+- Validation rules scale with grid size:
+  - 4x4-5x5: max 2 uncommon, 4 common letters
+  - 6x6: max 3 uncommon, 6 common
+  - 7x7: max 4 uncommon, 8 common  
+  - 8x8: max 5 uncommon, 10 common
+- No more consecutive letter checking during generation (only in validation)
+- Flow: runtime generation (10 tries) → pre-generated grids → unconstrained grid
+
 ## [1.2.2] - 2026-08-03
 
 ### Fixed
