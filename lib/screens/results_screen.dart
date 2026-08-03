@@ -226,7 +226,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    flex: 3,
+                    flex: 2,
                     child: _buildWordList(),
                   ),
                   if (_selectedWordIndex != null)
@@ -395,15 +395,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
           )
         : selectedWord.path;
 
+    // Dynamic font size based on grid size
+    final fontSize = gridSize <= 4 ? 18.0 : (gridSize == 5 ? 16.0 : 14.0);
+
     return Container(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
       child: GridView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: gridSize,
-          crossAxisSpacing: 2,
-          mainAxisSpacing: 2,
+          crossAxisSpacing: 4,
+          mainAxisSpacing: 4,
         ),
         itemCount: gridSize * gridSize,
         itemBuilder: (context, index) {
@@ -416,13 +419,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
           return Container(
             decoration: BoxDecoration(
               color: isInPath ? Colors.orange : Colors.white,
-              border: Border.all(color: Colors.grey),
+              border: Border.all(color: Colors.grey, width: 1.5),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Center(
               child: Text(
                 tile.letter,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.bold,
                   color: isInPath ? Colors.white : Colors.black,
                 ),

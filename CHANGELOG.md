@@ -5,6 +5,18 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2026-08-03
+
+### Improved
+- **Results screen mini-grid visibility** - much larger and more readable
+  - Increased font sizes: 4x4=18px, 5x5=16px, 6x6+=14px (was 10px for all)
+  - Increased cell spacing from 2px to 4px
+  - Added rounded corners to grid cells
+  - Thicker borders (1.5px) for better definition
+  - More padding around grid (12px instead of 8px)
+  - Adjusted layout ratio: word list 2/3, grid 1/3 (was 3/4, 1/4)
+  - Grid is now much easier to read at a glance
+
 ## [1.4.1] - 2026-08-03
 
 ### Fixed
