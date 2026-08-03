@@ -5,6 +5,16 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.7] - 2026-08-03
+
+### Fixed
+- **Much more precise tile selection** with center-zone detection
+  - Tiles only selected when touch is in center 60% of the tile area
+  - Creates automatic dead zone at tile edges (40% margin)
+  - Dramatically reduces accidental selection of adjacent tiles
+  - Diagonal swipes much more accurate
+  - Edge touches ignored, preventing unwanted tiles during fast swipes
+
 ## [1.3.6] - 2026-08-03
 
 ### Fixed

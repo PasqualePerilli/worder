@@ -2,7 +2,7 @@
 
 An offline word game inspired by Ruzzle, built with Flutter.
 
-**Version:** 1.3.6  
+**Version:** 1.3.7  
 **Release Date:** 2026-08-03
 
 ## Features

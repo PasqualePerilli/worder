@@ -254,6 +254,39 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     });
   }
 
+  // Helper to get tile only if touch is in center zone (not edges)
+  ({int row, int col})? _getTileInCenterZone(
+      double x, double y, double gridPadding, double gridSize) {
+    const centerZoneRatio = 0.6; // Only trigger in center 60% of tile
+    
+    final cellWidth = gridSize / _grid!.length;
+    final cellHeight = gridSize / _grid!.length;
+    final adjustedX = x - gridPadding;
+    final adjustedY = y - gridPadding;
+    
+    final row = (adjustedY / cellHeight).floor();
+    final col = (adjustedX / cellWidth).floor();
+    
+    if (row < 0 || row >= _grid!.length || col < 0 || col >= _grid!.length) {
+      return null;
+    }
+    
+    // Calculate position within the cell (0.0 to 1.0)
+    final cellLocalX = (adjustedX % cellWidth) / cellWidth;
+    final cellLocalY = (adjustedY % cellHeight) / cellHeight;
+    
+    // Check if in center zone
+    final margin = (1.0 - centerZoneRatio) / 2.0;
+    final inCenterX = cellLocalX >= margin && cellLocalX <= (1.0 - margin);
+    final inCenterY = cellLocalY >= margin && cellLocalY <= (1.0 - margin);
+    
+    if (inCenterX && inCenterY) {
+      return (row: row, col: col);
+    }
+    
+    return null;
+  }
+
   void _onTileEnter(int row, int col) {
     if (_isPaused) return;
 
@@ -543,33 +576,33 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               return;
             }
             
+            final gridSize = constraints.maxWidth - (gridPadding * 2);
+            
             if (!_hasStartedSelecting) {
               _hasStartedSelecting = true;
               // Start selection at the drag start position
-              final adjustedX = _dragStartPosition!.dx - gridPadding;
-              final adjustedY = _dragStartPosition!.dy - gridPadding;
-              final gridSize = constraints.maxWidth - (gridPadding * 2);
-              final cellWidth = gridSize / _grid!.length;
-              final cellHeight = gridSize / _grid!.length;
-              final row = (adjustedY / cellHeight).floor();
-              final col = (adjustedX / cellWidth).floor();
+              final tile = _getTileInCenterZone(
+                _dragStartPosition!.dx,
+                _dragStartPosition!.dy,
+                gridPadding,
+                gridSize,
+              );
 
-              if (row >= 0 && row < _grid!.length && col >= 0 && col < _grid!.length) {
-                _onTileEnter(row, col);
+              if (tile != null) {
+                _onTileEnter(tile.row, tile.col);
               }
             }
             
-            // Continue selection at current position
-            final adjustedX = details.localPosition.dx - gridPadding;
-            final adjustedY = details.localPosition.dy - gridPadding;
-            final gridSize = constraints.maxWidth - (gridPadding * 2);
-            final cellWidth = gridSize / _grid!.length;
-            final cellHeight = gridSize / _grid!.length;
-            final row = (adjustedY / cellHeight).floor();
-            final col = (adjustedX / cellWidth).floor();
+            // Continue selection at current position (only if in center zone)
+            final tile = _getTileInCenterZone(
+              details.localPosition.dx,
+              details.localPosition.dy,
+              gridPadding,
+              gridSize,
+            );
 
-            if (row >= 0 && row < _grid!.length && col >= 0 && col < _grid!.length) {
-              _onTileEnter(row, col);
+            if (tile != null) {
+              _onTileEnter(tile.row, tile.col);
             }
           },
           onPanEnd: (details) {
