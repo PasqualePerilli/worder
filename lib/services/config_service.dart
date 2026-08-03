@@ -97,4 +97,8 @@ class ConfigService {
       (_config['defaults']?['player_name'] as String?) ?? 'Player';
 
   int get topWordsCount => (_config['share']?['top_words_count'] as int?) ?? 10;
+
+  String get manualScreenshotMessage =>
+      (_config['share']?['manual_screenshot_message'] as String?) ??
+      'Take a screenshot of your results to share!';
 }

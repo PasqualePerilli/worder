@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../models/game_state.dart';
@@ -9,6 +8,7 @@ import '../models/game_settings.dart';
 import '../services/dictionary_service.dart';
 import '../services/score_calculator_service.dart';
 import '../services/config_service.dart';
+import '../services/share_service.dart';
 import 'home_screen.dart';
 import 'game_screen.dart' show GameScreen;
 
@@ -120,7 +120,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  Future<void> _shareResults() async {
+  Future<void> _saveResults() async {
     final config = await ConfigService.getInstance();
     final topWords = _displayWords.take(config.topWordsCount).toList();
 
@@ -128,17 +128,34 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final image = await _screenshotController.capture();
     if (image == null) return;
 
-    // Save to temp file
-    final directory = await getTemporaryDirectory();
-    final imagePath = '${directory.path}/worder_results.png';
+    // Save to app documents directory
+    final directory = await getApplicationDocumentsDirectory();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final imagePath = '${directory.path}/worder_results_$timestamp.png';
     final imageFile = File(imagePath);
     await imageFile.writeAsBytes(image);
 
-    // Share
-    await Share.shareXFiles(
-      [XFile(imagePath)],
-      text: 'WORDER - Score: ${widget.gameState.currentScore}',
+    // Show confirmation
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Results saved to: $imagePath'),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+   
+
+  Future<void> _shareResults() async {
+    final config = await ConfigService.getInstance();
+    final topWords = _displayWords.take(config.topWordsCount).toList();
+
+    await ShareService.shareResults(
+      context: context,
+      gameState: widget.gameState,
+      screenshotController: _screenshotController,
+      topWords: topWords,
     );
+  } }
   }
 
   @override
@@ -368,10 +385,24 @@ class _ResultsScreenState extends State<ResultsScreen> {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ElevatedButton.icon(
-            onPressed: () {
+        maRow(
+            children: [
+              ElevatedButton.icon(
+                onPressed: _saveResults,
+                icon: const Icon(Icons.save),
+                label: const Text('Save'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: _shareResults,
+                icon: const Icon(Icons.share),
+                label: const Text('Share'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ]
               setState(() {
                 _showAllWords = !_showAllWords;
                 _prepareWordList();
@@ -381,9 +412,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
             label: Text(_showAllWords ? 'Hide All' : 'Show All'),
           ),
           ElevatedButton.icon(
-            onPressed: _shareResults,
-            icon: const Icon(Icons.share),
-            label: const Text('Share'),
+            onPressed: _saveResults,
+            icon: const Icon(Icons.save),
+            label: const Text('Save'),
           ),
         ],
       ),

@@ -42,3 +42,4 @@ defaults:
 # Share settings
 share:
   top_words_count: 10
+  manual_screenshot_message: "Take a screenshot of your results to share!"
