@@ -126,23 +126,26 @@ class TileWidget extends StatelessWidget {
         ? 3
         : 2;
 
+    final indicatorSize = _getBonusIndicatorSize();
+    final numberFontSize = _getBonusNumberFontSize();
+
     if (isWordBonus) {
       // Star for word bonuses with number inside
       return SizedBox(
-        width: 32,
-        height: 32,
+        width: indicatorSize,
+        height: indicatorSize,
         child: Stack(
           alignment: Alignment.center,
           children: [
             Icon(
               Icons.star,
-              size: 32,
+              size: indicatorSize,
               color: _getBorderColor(config),
             ),
             Text(
               '$multiplier',
-              style: const TextStyle(
-                fontSize: 12,
+              style: TextStyle(
+                fontSize: numberFontSize,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -153,8 +156,8 @@ class TileWidget extends StatelessWidget {
     } else {
       // Circle for letter bonuses with number inside
       return Container(
-        width: 32,
-        height: 32,
+        width: indicatorSize,
+        height: indicatorSize,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: _getBorderColor(config),
@@ -162,8 +165,8 @@ class TileWidget extends StatelessWidget {
         child: Center(
           child: Text(
             '$multiplier',
-            style: const TextStyle(
-              fontSize: 14,
+            style: TextStyle(
+              fontSize: numberFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -176,17 +179,17 @@ class TileWidget extends StatelessWidget {
     // Scale down letter size for larger grids
     switch (gridSize) {
       case 4:
-        return 28.0;
+        return 26.0;
       case 5:
-        return 24.0;
-      case 6:
         return 20.0;
+      case 6:
+        return 15.0;
       case 7:
-        return 16.0;
+        return 12.0;
       case 8:
-        return 14.0;
+        return 10.0;
       default:
-        return 24.0;
+        return 20.0;
     }
   }
 
@@ -194,17 +197,53 @@ class TileWidget extends StatelessWidget {
     // Scale down value size for larger grids
     switch (gridSize) {
       case 4:
+        return 10.0;
+      case 5:
+        return 8.0;
+      case 6:
+        return 7.0;
+      case 7:
+        return 6.0;
+      case 8:
+        return 5.0;
+      default:
+        return 8.0;
+    }
+  }
+
+  double _getBonusIndicatorSize() {
+    // Scale down bonus indicator for larger grids
+    switch (gridSize) {
+      case 4:
+        return 28.0;
+      case 5:
+        return 20.0;
+      case 6:
+        return 16.0;
+      case 7:
+        return 14.0;
+      case 8:
+        return 12.0;
+      default:
+        return 20.0;
+    }
+  }
+
+  double _getBonusNumberFontSize() {
+    // Scale down bonus number for larger grids
+    switch (gridSize) {
+      case 4:
         return 11.0;
       case 5:
-        return 10.0;
-      case 6:
         return 9.0;
-      case 7:
-        return 8.0;
-      case 8:
+      case 6:
         return 7.0;
+      case 7:
+        return 6.0;
+      case 8:
+        return 5.5;
       default:
-        return 10.0;
+        return 9.0;
     }
   }
   Color _parseColor(String hexColor) {

@@ -5,6 +5,20 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2026-08-03
+
+### Changed
+- **Improved visibility on larger grids**
+  - Letter font sizes: 4x4=26, 5x5=20, 6x6=15, 7x7=12, 8x8=10
+  - Value font sizes: 4x4=10, 5x5=8, 6x6=7, 7x7=6, 8x8=5
+- **Significantly smaller bonus indicators** (especially for 5x5+)
+  - 4x4: 28px, 5x5: 20px, 6x6: 16px, 7x7: 14px, 8x8: 12px
+  - Bonus number sizes: 4x4=11, 5x5=9, 6x6=7, 7x7=6, 8x8=5.5
+  - Bonus indicators now take up much less tile space
+- **Tripled cell spacing for more forgiving diagonal selection**
+  - Cell spacing increased from 24px to 72px
+  - Much easier to select intended tiles, harder to accidentally catch unwanted adjacent tiles
+
 ## [1.3.4] - 2026-08-03
 
 ### Changed

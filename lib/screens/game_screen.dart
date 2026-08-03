@@ -564,8 +564,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             padding: const EdgeInsets.all(gridPadding),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: _grid!.length,
-              crossAxisSpacing: 24,
-              mainAxisSpacing: 24,
+              crossAxisSpacing: 72,
+              mainAxisSpacing: 72,
             ),
             itemCount: _grid!.length * _grid!.length,
             itemBuilder: (context, index) {
