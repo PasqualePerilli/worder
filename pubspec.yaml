@@ -1,0 +1,30 @@
+name: worder
+description: An offline word game inspired by Ruzzle
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.1
+  screenshot: ^2.1.0
+  share_plus: ^7.2.1
+  yaml: ^3.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/words/
+    - assets/letter_values/
+    - assets/letter_frequencies/
+    - assets/config/

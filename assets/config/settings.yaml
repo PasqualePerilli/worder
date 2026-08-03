@@ -1,0 +1,44 @@
+# WORDER Configuration File
+# All configurable settings for the application
+
+# Animation durations (in milliseconds)
+animations:
+  invalid_word_shake_duration: 500
+  tile_popup_scale: 1.15
+  preview_bar_success_duration: 800
+  preview_bar_error_duration: 500
+  added_time_overlay_duration: 1500
+
+# Grid settings
+grid:
+  min_word_length: 2
+  bonus_tiles:
+    triple_word_count: 1
+    double_word_count: 2
+    triple_letter_count: 2
+    double_letter_count: 1
+
+# Bonus tile colors (hex format)
+colors:
+  triple_word: "#FF0000"      # Red
+  double_word: "#FFFF00"      # Yellow
+  triple_letter: "#0000FF"    # Blue
+  double_letter: "#00FF00"    # Green
+  selected_tile: "#FFA500"    # Orange
+  background_game: "#ADD8E6"  # Light blue
+  background_home: "#ADD8E6"  # Light blue
+  play_button: "#FFA500"      # Orange
+  preview_bar_success: "#00FF00"  # Green
+  preview_bar_error: "#FF0000"    # Red
+  preview_bar_default: "#FFA500"  # Orange
+
+# Default settings
+defaults:
+  language: "italian"
+  grid_size: 4
+  game_duration_minutes: 2
+  player_name: "Player"
+
+# Share settings
+share:
+  top_words_count: 10
