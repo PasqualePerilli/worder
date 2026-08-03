@@ -5,6 +5,33 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-03
+
+### Changed
+- Bonus tile appearance significantly improved:
+  - Stars and circles increased to 32px (2x larger)
+  - Bonus indicators now extend outside tiles into gaps between tiles
+  - Tile borders colored instead of tile backgrounds for bonus tiles
+  - Bonus tile borders increased to 6px (3x thicker)
+  - Letter point values moved from top-right to bottom-right
+  - Circle multiplier text increased to 14px for better readability
+- Top bar UI redesigned:
+  - Added dark blue container with border and drop shadow
+  - Better visual separation from game background
+  - Stop button now displays "STOP" text instead of icon
+  - Improved spacing and visual hierarchy
+- Letter selection mechanics refined:
+  - Now purely drag-based (removed tap-to-select)
+  - Selection starts on drag start (onPanStart)
+  - Selection continues during drag (onPanUpdate)
+  - Word submitted when finger lifts (onPanEnd)
+  - More intuitive and consistent drag experience
+
+### Technical
+- Removed onTapDown callback from TileWidget
+- Implemented LayoutBuilder in grid for proper drag coordinate calculation
+- Updated TileWidget to use Stack with Clip.none for overflow indicators
+
 ## [1.0.0] - 2026-08-03
 
 ### Added
