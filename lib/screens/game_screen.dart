@@ -561,9 +561,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     return LayoutBuilder(
       builder: (context, constraints) {
         const gridPadding = 16.0;
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onPanStart: (details) {
+        
+        // Calculate available space and constrain grid to fit
+        final maxSize = constraints.maxWidth < constraints.maxHeight 
+            ? constraints.maxWidth 
+            : constraints.maxHeight;
+        
+        return Center(
+          child: SizedBox(
+            width: maxSize,
+            height: maxSize,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onPanStart: (details) {
             // Record start position but don't select yet
             _dragStartPosition = details.localPosition;
             _hasStartedSelecting = false;
@@ -643,6 +653,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 gridSize: _grid!.length,
               );
             },
+          ),
+        ),
           ),
         );
       },
