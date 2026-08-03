@@ -49,6 +49,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _startGame() async {
     await _saveSettings();
+    // Clear any saved game to ensure we start fresh with a new grid
+    await _persistenceService.clearCurrentGame();
     if (!mounted) return;
 
     Navigator.push(

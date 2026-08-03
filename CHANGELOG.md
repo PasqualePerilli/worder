@@ -5,6 +5,15 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-08-03
+
+### Fixed
+- **Grid reuse bug** - starting a new game from home now always generates a fresh random grid
+  - Previously: finishing a game and starting a new one with the same grid size would reuse the old grid
+  - Now: pressing PLAY from home screen clears any saved game state first
+  - Each new game gets a completely new random grid
+  - Grid replay only happens when resuming an unfinished game or using the + button in results
+
 ## [1.4.0] - 2026-08-03
 
 ### Changed
