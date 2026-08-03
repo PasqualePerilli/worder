@@ -175,11 +175,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: 16.0),
             child: GestureDetector(
               onTap: _addOneMinute,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
@@ -188,7 +189,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                   child: Text(
                     '+',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

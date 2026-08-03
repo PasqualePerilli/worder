@@ -456,6 +456,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       builder: (context, constraints) {
         const gridPadding = 16.0;
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onPanStart: (details) {
             // Start selection on drag start (account for grid padding)
             final adjustedX = details.localPosition.dx - gridPadding;
