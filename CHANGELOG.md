@@ -5,6 +5,29 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.4] - 2026-08-03
+
+### Changed
+- **+ button behavior**: Now extends the game instead of restarting it
+  - Previous: Pressing + kept the same grid but reset score to 0 and cleared found words
+  - New: Pressing + keeps the grid, score, and all found words, adding 1 minute to continue
+  - Previously found words remain found and cannot be re-scored
+  - Allows players to continue searching for new words without losing progress
+  
+### Technical
+- Modified `_addOneMinute()` in results_screen.dart:
+  - Creates copy of game state with `isFinished: false` and `gameDurationMinutes + 1`
+  - Saves extended game as current game
+  - GameScreen resumes the extended game (not a new game)
+- Added PersistenceService import to results_screen.dart
+
+### Example
+- Play 2-minute game, find 10 words worth 50 points
+- Time expires → Results screen shows
+- Press + button
+- Game resumes with: same grid + 10 found words + 50 points + 1 minute added
+- Can now find additional words for more points
+
 ## [1.3.3] - 2026-08-03
 
 ### Fixed
