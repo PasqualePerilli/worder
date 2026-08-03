@@ -5,6 +5,26 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2026-08-03
+
+### Fixed
+- **CRITICAL**: Infinite spinner issue - grid would never load
+  - Root cause: Letter distribution constraints from v1.2.0 were too strict
+  - Algorithm was trying 100 times to generate valid grids and failing every time
+  - Fixed by optimizing the generation algorithm:
+    * Increased per-tile retry attempts from 50 to 200 for small grids
+    * Improved fallback logic to avoid consecutive letters intelligently
+    * Reduced max grid retries from 100 to 10 (faster fallback to relaxed mode)
+    * Removed unnecessary async from internal methods
+  - Grid generation now completes in under 1 second
+
+### Technical
+- Made `_generateLetters()` and `_generateLettersRelaxed()` synchronous (they don't await anything)
+- Increased `maxAttempts` to 200 for grids ≤4x4 (was 50 for all sizes)
+- Fallback now tries common letters that avoid consecutive patterns before random selection
+- Reduced `max_generation_retries` from 100 to 10 in settings.yaml
+- Added debug logging: "Starting grid generation", "Successfully generated valid grid on attempt X", "Using relaxed rules"
+
 ## [1.2.1] - 2026-08-03
 
 ### Fixed

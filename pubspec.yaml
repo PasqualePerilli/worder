@@ -1,7 +1,7 @@
 name: worder
 description: An offline word game inspired by Ruzzle
 publish_to: 'none'
-version: 1.2.1+6
+version: 1.2.2+7
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
