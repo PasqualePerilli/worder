@@ -5,6 +5,18 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-08-04
+
+### Added
+- **App logo on home screen** - custom W tile logo displayed below title
+- **Version number display** - shows current version below play button
+- **Custom favicon** - web version now uses W tile icon as favicon
+
+### Technical
+- Added package_info_plus dependency for version display
+- Added logo.png asset
+- Updated web/favicon.png with custom icon
+
 ## [1.5.2] - 2026-08-03
 
 ### Fixed

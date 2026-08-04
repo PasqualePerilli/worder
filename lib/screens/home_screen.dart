@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../models/game_settings.dart';
 import '../services/config_service.dart';
 import '../services/persistence_service.dart';
@@ -17,6 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final PersistenceService _persistenceService = PersistenceService();
   final DictionaryService _dictionaryService = DictionaryService.getInstance();
   bool _isLoading = true;
+  String _version = '';
 
   @override
   void initState() {
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadSettings() async {
     final config = await ConfigService.getInstance();
     final savedSettings = await _persistenceService.loadSettings();
+    final packageInfo = await PackageInfo.fromPlatform();
 
     setState(() {
       _settings = savedSettings ??
@@ -36,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
             gameDurationMinutes: config.defaultGameDurationMinutes,
             playerName: config.defaultPlayerName,
           );
+      _version = 'v${packageInfo.version}';
       _isLoading = false;
     });
 
@@ -100,6 +104,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: Colors.white,
                       ),
                       textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Logo
+                    Image.asset(
+                      'assets/logo.png',
+                      width: 120,
+                      height: 120,
                     ),
                     const SizedBox(height: 48),
 
@@ -193,6 +205,17 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       child: const Text('PLAY'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Version number
+                    Text(
+                      _version,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
