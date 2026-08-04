@@ -1,0 +1,1 @@
+ /home/pasquale/worder/.dart_tool/flutter_build/24b8f2cb4e4370ca6eb233e6b8aa1f2d/native_assets.json: 

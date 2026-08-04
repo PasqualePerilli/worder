@@ -1,0 +1,1 @@
+ /home/pasquale/worder/.dart_tool/flutter_build/24b8f2cb4e4370ca6eb233e6b8aa1f2d/dart_build_result.json:  /home/pasquale/snap/flutter/common/flutter/bin/cache/dart-sdk/version /home/pasquale/worder/.dart_tool/package_config.json /home/pasquale/worder/pubspec.yaml
