@@ -130,4 +130,12 @@ class ConfigService {
 
   double get bonusNumberRatio =>
       ((_config['tile_fonts']?['bonus_number_ratio'] as num?) ?? 0.35).toDouble();
+
+  // Gesture settings
+  int get cancelGracePeriod =>
+      (_config['gestures']?['cancel_grace_period'] as int?) ?? 150;
+
+  // Pause overlay opacity
+  double get pauseOverlayOpacity =>
+      ((_config['colors']?['pause_overlay_opacity'] as num?) ?? 0.85).toDouble();
 }

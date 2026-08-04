@@ -5,6 +5,20 @@ All notable changes to the WORDER project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1] - 2026-08-04
+
+### Fixed
+- **Drag sensitivity** - added grace period for false lift detection; when pressure varies during continuous drag, selection is preserved if touch resumes within 150ms
+- **Preview bar text persistence** - word now stays visible until the first letter of next word is selected, instead of disappearing immediately
+
+### Improved
+- **Pause overlay readability** - increased opacity to 0.85 (configurable in YAML) for better separation between overlay and background
+
+### Technical
+- Added `gestures.cancel_grace_period` setting in YAML (default: 150ms)
+- Added `colors.pause_overlay_opacity` setting in YAML (default: 0.85)
+- Grace period timer prevents false positive lift detection during continuous dragging
+
 ## [1.6.0] - 2026-08-04
 
 ### Added

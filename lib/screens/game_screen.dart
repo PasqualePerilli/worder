@@ -45,6 +45,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _hasStartedSelecting = false;
   static const double _minDragDistance = 20.0; // Minimum pixels to drag before selecting
 
+  // Grace period for false lift detection
+  Timer? _cancelGraceTimer;
+  List<TilePosition>? _cancelledPath;
+  String? _cancelledWord;
+
   final DictionaryService _dictionaryService = DictionaryService.getInstance();
   final GridGeneratorService _gridGenerator = GridGeneratorService();
   final ScoreCalculatorService _scoreCalculator = ScoreCalculatorService();
@@ -61,6 +66,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _gameTimer?.cancel();
+    _cancelGraceTimer?.cancel();
     super.dispose();
   }
 
@@ -330,7 +336,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (word.length < config.minWordLength) {
       setState(() {
         _previewState = PreviewBarState.selecting;
-        _currentWord = ''; // Clear word when resetting to selecting
+        // Don't clear _currentWord here - it will be cleared when starting next word
         _lastWordScore = null;
       });
       return;
@@ -340,7 +346,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (_foundWordStrings.contains(word)) {
       setState(() {
         _previewState = PreviewBarState.selecting;
-        _currentWord = ''; // Clear word when resetting to selecting
+        // Don't clear _currentWord here - it will be cleared when starting next word
         _lastWordScore = null;
       });
       return;
@@ -374,13 +380,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _currentScore += score;
       });
 
-      // Wait a bit before clearing preview
+      // Wait a bit before resetting preview state (but keep the word visible)
       await Future.delayed(Duration(milliseconds: config.previewBarSuccessDuration));
       
       if (mounted) {
         setState(() {
           _previewState = PreviewBarState.selecting;
-          _currentWord = ''; // Clear word when resetting to selecting
+          // Don't clear _currentWord here - it will be cleared when starting next word
           _lastWordScore = null;
         });
       }
@@ -395,7 +401,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       if (mounted) {
         setState(() {
           _previewState = PreviewBarState.selecting;
-          _currentWord = ''; // Clear word when resetting to selecting
+          // Don't clear _currentWord here - it will be cleared when starting next word
           _lastWordScore = null;
         });
       }
@@ -573,10 +579,26 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             height: maxSize,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onPanStart: (details) {
+              onPanStart: (details) async {
             // Record start position but don't select yet
             _dragStartPosition = details.localPosition;
             _hasStartedSelecting = false;
+            
+            // Check if this is a quick resume after cancel (grace period)
+            final config = await ConfigService.getInstance();
+            if (_cancelGraceTimer != null && _cancelGraceTimer!.isActive) {
+              // Restore cancelled selection
+              _cancelGraceTimer!.cancel();
+              setState(() {
+                if (_cancelledPath != null && _cancelledWord != null) {
+                  _currentPath.addAll(_cancelledPath!);
+                  _currentWord = _cancelledWord!;
+                  _previewState = PreviewBarState.selecting;
+                }
+                _cancelledPath = null;
+                _cancelledWord = null;
+              });
+            }
           },
           onPanUpdate: (details) {
             if (_dragStartPosition == null) return;
@@ -593,6 +615,15 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             
             if (!_hasStartedSelecting) {
               _hasStartedSelecting = true;
+              
+              // Clear previous word only when starting a NEW word
+              if (_currentPath.isEmpty && _currentWord.isNotEmpty) {
+                setState(() {
+                  _currentWord = '';
+                  _lastWordScore = null;
+                });
+              }
+              
               // Start selection at the drag start position
               final tile = _getTileInCenterZone(
                 _dragStartPosition!.dx,
@@ -624,11 +655,31 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             _hasStartedSelecting = false;
             _onSelectionEnd();
           },
-          onPanCancel: () {
+          onPanCancel: () async {
             print('GameScreen: onPanCancel triggered');
             _dragStartPosition = null;
             _hasStartedSelecting = false;
-            _onSelectionEnd();
+            
+            // Store current path and start grace period
+            final config = await ConfigService.getInstance();
+            _cancelledPath = List<TilePosition>.from(_currentPath);
+            _cancelledWord = _currentWord;
+            
+            // Clear current selection
+            setState(() {
+              _currentPath.clear();
+            });
+            
+            // Start grace period timer
+            _cancelGraceTimer?.cancel();
+            _cancelGraceTimer = Timer(Duration(milliseconds: config.cancelGracePeriod), () {
+              // Grace period expired, finalize the cancellation
+              if (_cancelledPath != null && _cancelledPath!.isNotEmpty) {
+                _onSelectionEnd();
+              }
+              _cancelledPath = null;
+              _cancelledWord = null;
+            });
           },
           child: GridView.builder(
             shrinkWrap: true,
@@ -662,41 +713,48 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildPauseOverlay() {
-    return Container(
-      color: Colors.black54,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Score: $_currentScore',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+    return FutureBuilder<ConfigService>(
+      future: ConfigService.getInstance(),
+      builder: (context, snapshot) {
+        final opacity = snapshot.hasData ? snapshot.data!.pauseOverlayOpacity : 0.85;
+        
+        return Container(
+          color: Colors.black.withOpacity(opacity),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Score: $_currentScore',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Time: ${_formatTime(_elapsedSeconds)}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: _resumeGame,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
+                  ),
+                  child: const Icon(Icons.play_arrow, size: 48),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Time: ${_formatTime(_elapsedSeconds)}',
-              style: const TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _resumeGame,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-              ),
-              child: const Icon(Icons.play_arrow, size: 48),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
