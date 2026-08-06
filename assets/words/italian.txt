@@ -1,9 +1,3 @@
-surgelo
-surgeli
-surgela
-surgelera
-surgelero
-surgelerai
 a
 abaca
 abache
@@ -144931,9 +144925,9 @@ namibiana
 namibiane
 namibiani
 namibiano
+nana
 nanchino
 nandu
-nana
 nane
 naneria
 nanerie
@@ -253353,6 +253347,7 @@ surfing
 surfista
 surfisti
 surgela
+surgela
 surgelamenti
 surgelamento
 surgelano
@@ -253362,6 +253357,11 @@ surgelate
 surgelati
 surgelato
 surgelazione
+surgelera
+surgelerai
+surgelero
+surgeli
+surgelo
 suricata
 suriettiva
 suriettive
